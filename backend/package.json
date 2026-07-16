@@ -25,13 +25,16 @@
     "dotenv": "17.4.2",
     "drizzle-orm": "0.45.1",
     "express": "5.2.1",
+    "imapflow": "^1.4.7",
     "jose": "6.2.3",
+    "mailparser": "^3.9.14",
     "nodemailer": "7.0.13",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
+    "@types/mailparser": "^3.4.6",
     "@types/node": "26.1.1",
     "@types/nodemailer": "8.0.1",
     "drizzle-kit": "0.31.8",

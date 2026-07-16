@@ -55,6 +55,10 @@ export const accounts = pgTable(
     type: text("type", { enum: ["mail", "calendar", "finance"] }).notNull(),
     provider: text("provider").notNull(),
     configEncrypted: text("config_encrypted").notNull(),
+    emailAddr: text("email_addr"),
+    displayName: text("display_name"),
+    /** Per-folder last-synced IMAP UID, e.g. { "INBOX": 123, "Sent": 45 } */
+    lastSyncedUid: jsonb("last_synced_uid").notNull().default({}),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("accounts_user_id_idx").on(t.userId)],
@@ -75,9 +79,17 @@ export const mailThreads = pgTable(
     snippet: text("snippet").notNull().default(""),
     lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
     isUnread: boolean("is_unread").notNull().default(true),
+    folder: text("folder").notNull().default("inbox"),
+    isFlagged: boolean("is_flagged").notNull().default(false),
+    snoozedUntil: timestamp("snoozed_until", { withTimezone: true }),
+    messageCount: integer("message_count").notNull().default(1),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("mail_threads_account_id_idx").on(t.accountId)],
+  (t) => [
+    index("mail_threads_account_id_idx").on(t.accountId),
+    index("mail_threads_folder_idx").on(t.folder),
+    index("mail_threads_last_message_at_idx").on(t.lastMessageAt),
+  ],
 )
 
 export const emails = pgTable(
@@ -89,13 +101,26 @@ export const emails = pgTable(
       .references(() => mailThreads.id, { onDelete: "cascade" }),
     fromAddr: text("from_addr").notNull(),
     toAddrsJson: jsonb("to_addrs_json").notNull().default([]),
+    ccAddrsJson: jsonb("cc_addrs_json").notNull().default([]),
+    bccAddrsJson: jsonb("bcc_addrs_json").notNull().default([]),
     bodyHtml: text("body_html"),
+    bodyText: text("body_text"),
     attachmentsJson: jsonb("attachments_json").notNull().default([]),
     folder: text("folder").notNull().default("inbox"),
+    /** RFC 5322 Message-ID header — used for threading + dedupe. */
+    messageId: text("message_id"),
+    imapUid: integer("imap_uid"),
+    isOutbound: boolean("is_outbound").notNull().default(false),
+    /** Set (with folder = "outbox") for send-later messages. */
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("emails_thread_id_idx").on(t.threadId)],
+  (t) => [
+    index("emails_thread_id_idx").on(t.threadId),
+    index("emails_message_id_idx").on(t.messageId),
+    index("emails_scheduled_at_idx").on(t.scheduledAt),
+  ],
 )
 
 // ---------------------------------------------------------------------------
