@@ -311,7 +311,8 @@ check(
   `status ${reminder.status}, title ${reminder.json?.task?.title}`,
 )
 
-const tasks = await req("/api/tasks", { token })
+// Tasks list API requires a view or listId (Phase 3 contract); the reminder is due ~30 days out → "upcoming".
+const tasks = await req("/api/tasks?view=upcoming", { token })
 check(
   "reminder visible in Tasks module",
   tasks.status === 200 && tasks.json?.tasks?.some((t) => t.id === reminder.json?.task?.id),

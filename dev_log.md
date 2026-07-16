@@ -1,10 +1,10 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (Phase 5 — Notes module fully merged to main via PR #21; log updated from a fresh chat environment)
-**Branch:** v0/mobab41225-5541-f5a44dd2 (base: main @ 21d34eb)
+**Date:** 2026-07-16 (Phase 6 — Finance module complete: backend + mobile verified end-to-end in this chat environment)
+**Branch:** v0/xanehi5391-6467-e4621502 (base: main @ 70b19ef)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
-> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **five migrations (0000–0004)** — 0004 (`0004_large_wrecker.sql`) adds the Phase 5 notes columns (`notes.content_text`, `notes.is_pinned`) and the `note_versions` table. Migrations have **not** been applied in *this* chat's environment yet (fresh clone, no installs run); earlier verification runs listed below were performed in previous chat environments.
+> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **six migrations (0000–0005)** — 0005 (`0005_lovely_black_crow.sql`) adds the Phase 6 finance changes (`finance_cards` table, `finance_accounts.type/color/is_archived`, `transactions.is_recurring/notes`, merchant index). All six migrations were applied to this chat's Neon DB on 2026-07-16 and the full finance smoke test passed live.
 
 ---
 
@@ -18,7 +18,7 @@
 | Phase 3 | To-Do Module | ✅ Complete (widgets/geofencing/local notifications deferred) |
 | Phase 4 | Calendar Module | ✅ Complete (device sync one-way; event write-back + reminders push deferred) |
 | Phase 5 | Notes Module | ✅ Complete (block editor v1; 10tap/TipTap rich editor, images/drawing, offline SQLite cache deferred) |
-| Phase 6 | Finance Module | ❌ Not started (placeholder only) |
+| Phase 6 | Finance Module | ✅ Complete (PFM v1: manual accounts/transactions, budgets, analytics, cards mock; GoCardless/Tink aggregation + OCR deferred) |
 | Phase 7 | Polish & Launch | ❌ Not started |
 
 ---
@@ -162,10 +162,35 @@
 - Offline expo-sqlite cache + background sync (schema is ready: client-generated UUIDs + `updated_at`).
 - Cross-module links (checklist block → Tasks module): `taskId` is in the block schema but no UI creates the link yet.
 
-## Phase 6 — Finance Module ❌
+## Phase 6 — Finance Module ✅ (this branch)
 
-- Finance tab renders `ModulePlaceholder` ("coming soon"); `/api/finance` is a stub comment in `src/index.ts`.
-- Database schema exists (Phase 0), but no controllers, services, or provider integrations (GoCardless/Tink) yet.
+**Done — backend:**
+- Schema migration `0005_lovely_black_crow.sql` generated and applied: new `finance_cards` table (client-UUID PK, cascade FKs to users + finance_accounts, `is_frozen`, `updated_at`), `finance_accounts.type` (checking/savings/cash/card/investment), `finance_accounts.color`, `finance_accounts.is_archived`, `transactions.is_recurring`, `transactions.notes`, and a `transactions.merchant` index.
+- `shared/finance.schemas.ts` — Zod 4 schemas for accounts, transactions, cards, budgets, analytics summary, FX rates, recurring series, and recurring-reminder requests (mirrored to `mobile/src/lib/schemas/finance.schemas.ts` per plan §0.1). Currencies: HUF/EUR/USD; ~14 transaction categories.
+- `services/categorize.ts` — rule-based transaction categorization engine (ordered keyword rules tuned for the Hungarian market: Lidl/Tesco/Spar groceries, Hungarian utilities/telcos, international subscriptions; credits default to income). Dependency-free; swappable for ML later behind the same signature.
+- `services/recurring.ts` — recurring-payment detection heuristic: groups debits by normalized merchant + currency, flags steady-cadence/consistent-amount series (subscriptions, rent), computes interval, average amount, and next expected date.
+- `services/fx.ts` — static FX table (HUF base, v1 snapshot: EUR 395.5); analytics/budgets/dashboard convert mixed-currency balances into HUF. Live ECB/MNB feed can replace the table without touching callers.
+- `controllers/finance.controller.ts` + `routes/finance.routes.ts` mounted at `/api/finance` in `src/index.ts` (replacing the Phase 6 stub comment): account CRUD (archive semantics — archived accounts hidden by default, reject new transactions, `?includeArchived=true`), transaction CRUD with auto-categorization + balance bookkeeping (create/patch/delete all rebalance the account), filters (`accountId`, `category`, `type`, `q` text search), virtual card CRUD (mock issue with random last4, freeze/unfreeze), budget CRUD (per-category, duplicate → 409, current-month `spent` computed in base currency), `GET /analytics/summary` (total balance with FX conversion, month income/spending, spending by category, 6-month trend), `GET /rates`, `GET /recurring` (detected series), and `POST /recurring/reminder` — **superapp integration**: creates a task in the To-Do module ahead of the next expected charge. All queries scoped to the authenticated user; account deletion cascades transactions + cards.
+- `scripts/finance-smoke.mjs` — 52-check API smoke test covering auth guard, validation, account/transaction/card/budget CRUD, auto-categorization, balance bookkeeping (create/patch/delete), archive semantics, all list filters, FX-converted analytics, recurring detection (cadence, average, `is_recurring` flagging), reminder-task creation + visibility in `/api/tasks?view=upcoming`, cross-user isolation, and cascade deletes.
+
+**Done — mobile:**
+- `victory-native` 41.x installed (with its Skia/Reanimated peers via `npx expo install`) for the analytics charts, per plan §0.2.
+- `lib/finance-api.ts` API layer + `lib/schemas/finance.schemas.ts` (mirrored from `backend/src/shared/`) + `hooks/use-finance.ts` TanStack Query 5 hooks (accounts/transactions/cards/budgets/summary/recurring/rates with cache invalidation via `financeKeys`).
+- `lib/money.ts` — HUF/EUR/USD currency formatting (HUF with no minor unit, Hermes-safe Intl fallback) + compact axis formatting.
+- Screens: Finance tab (`(tabs)/finance.tsx`, replaces placeholder) — Revolut/OTP-style dashboard with total balance (FX-converted), month in/out stats, horizontal account carousel, budget preview, recent activity, and a FAB to log transactions; account detail (`finance/account/[id].tsx`); transaction feed (`finance/transactions.tsx`) with filters; transaction detail (`finance/transaction/[id].tsx`); budgets (`finance/budgets.tsx`); virtual cards (`finance/cards.tsx`) with freeze/unfreeze; analytics (`finance/analytics.tsx`) with victory-native trend + category breakdown charts, recurring-payment list, and "remind me" → creates a To-Do task. All registered in the root stack.
+- Components: `finance/account-card.tsx`, `finance/add-account-sheet.tsx`, `finance/add-transaction-sheet.tsx`, `finance/transaction-row.tsx`, `finance/budget-row.tsx`, `finance/virtual-card.tsx`, `finance/charts.tsx` (victory-native `CartesianChart`/`BarGroup`), `finance/category-meta.ts` (category icon/color map).
+
+**Verification (2026-07-16, this branch, this chat's Neon DB):**
+- ✅ Migrations 0000–0005 applied via `drizzle-kit migrate` (fresh Neon DB in this environment, so all six were applied here).
+- ✅ Live smoke test against Neon: server boots, `/health` 200, `node scripts/finance-smoke.mjs` — **all 52 checks pass** (one stale check fixed in the script itself: the Tasks list API requires a `view` query param per the Phase 3 contract, so the reminder-visibility check now queries `/api/tasks?view=upcoming`). Test users removed from the DB afterward.
+- ✅ `npm run typecheck` passes in both `backend/` and `mobile/`.
+- ✅ `npx expo-doctor@latest` passes in `mobile/` (20/20 checks) with victory-native installed.
+
+**Deferred (not in Phase 6 scope as shipped):**
+- Bank aggregation via GoCardless Bank Account Data / Tink (PSD2) — v1 is manual-entry PFM; `finance_accounts.provider` and the `accounts` connection table are ready for it.
+- Receipt scanning (camera + OCR) — `transactions.receipt_url` column exists but no capture UI.
+- Live FX rates (static HUF/EUR/USD snapshot for now) and Stripe in-app payment flows.
+- Real card issuing / P2P transfers — virtual cards are display-only mocks per the plan's compliance note (PFM-only v1, no license needed).
 
 ## Phase 7 — Polish & Launch ❌
 
