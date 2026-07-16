@@ -1,10 +1,10 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (audit refresh — no code changes since PR #14; docs synced to current chat environment)
-**Branch:** v0/xiticiy299-1315-46e615c9 (base: main @ 573771b)
+**Date:** 2026-07-16 (Phase 4 — Calendar module complete; verified in current chat environment)
+**Branch:** v0/cogase5003-6453-b999ba7b (base: main @ 77cd81e)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
-> **Environment note (this chat, 2026-07-16):** the Neon database connected to the current v0 chat is **fresh** — it only contains `neon_auth.*` tables; the app's 15 `public` tables from migrations 0000–0002 are **not** applied here. The migration/smoke-test verification recorded below was performed against the Neon DB connected in the previous chat. Each v0 chat may connect a different Neon database, so run `npm run db:migrate` in `backend/` before any live testing in a new environment.
+> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. Migrations 0000–0003 were applied to the Neon DB connected to *this* chat on 2026-07-16 and the calendar smoke test was run live against it (see Phase 4 verification below).
 
 ---
 
@@ -16,7 +16,7 @@
 | Phase 1 | Superapp Shell & Navigation | ✅ Complete (pending live Vercel deploy verification) |
 | Phase 2 | Mail Module | ✅ Complete (IMAP/SMTP; provider OAuth deferred) |
 | Phase 3 | To-Do Module | ✅ Complete (widgets/geofencing/local notifications deferred) |
-| Phase 4 | Calendar Module | ❌ Not started (placeholder only) |
+| Phase 4 | Calendar Module | ✅ Complete (device sync one-way; event write-back + reminders push deferred) |
 | Phase 5 | Notes Module | ❌ Not started (placeholder only) |
 | Phase 6 | Finance Module | ❌ Not started (placeholder only) |
 | Phase 7 | Polish & Launch | ❌ Not started |
@@ -111,12 +111,42 @@
 **Deferred (not in Phase 3 scope as shipped):**
 - Geofenced location reminders, local notifications for due tasks, home-screen widgets, drag-and-drop list reordering (sort_order fields exist; UI ordering is static for now).
 
-## Phases 4–6 — Modules ❌
+## Phase 4 — Calendar Module ✅ (PRs #16, #17, merged @ 77cd81e)
 
-- Module tab screens (Calendar, Notes, Finance) render `ModulePlaceholder` ("coming soon").
-- Backend has auth + mail + tasks routers mounted; remaining module routers are stubbed as comments in `src/index.ts` (`/api/calendar`, `/api/notes`, `/api/finance`).
+**Done — backend:**
+- Schema migration `0003_dapper_lizard.sql` generated and applied: `events.description`, `events.timezone`, index on `events.end_time`.
+- `shared/calendar.schemas.ts` — Zod 4 schemas for calendar/event create + patch, events-range query, `.ics` import (mirrored to `mobile/src/lib/schemas/calendar.schemas.ts`).
+- `services/recurrence.ts` extended with `occurrencesBetween()` — expands an event's RRULE into concrete occurrences inside a query window (expanded instances are flagged `isRecurringInstance`).
+- `services/ics.ts` — dependency-free iCalendar (RFC 5545) `buildIcs()` / `parseIcs()` for export and import, incl. line folding/unfolding, all-day `VALUE=DATE` handling, and UID round-tripping.
+- `controllers/calendar.controller.ts` + `routes/calendar.routes.ts` mounted at `/api/calendar` in `src/index.ts` (replacing the Phase 4 stub comment): calendar CRUD (+ per-calendar event counts, `GET /calendars/:id/export.ics`), event CRUD, range query `GET /events?start&end` with `calendarId` filter, recurring-event expansion, and `includeTasks=true` **task overlay** (first superapp integration — dated tasks appear inside calendar views), `GET /search?q=`, `POST /import` (.ics; dedupes on ICS UID via `events.external_id`). All queries scoped to the authenticated user; deleting a calendar cascades its events.
+- `scripts/calendar-smoke.mjs` — 31-check API smoke test covering auth guard, validation, calendar/event CRUD, recurrence expansion, task overlay, search, .ics export/import + UID dedupe, cross-user isolation, and cascade-delete semantics.
+
+**Done — mobile:**
+- `lib/calendar-api.ts` API layer + `lib/schemas/calendar.schemas.ts` (mirrored from `backend/src/shared/`) + `hooks/use-calendar.ts` TanStack Query hooks (calendars/events/search/import with cache invalidation).
+- `lib/event-parser.ts` — Fantastical-style natural-language event entry ("Lunch with Anna tomorrow 12pm at Cafe Kor", ranges "3pm-4pm", "for 90 min", "all day", "every monday", "remind 30 min before"). Pure + dependency-free.
+- `lib/device-calendar.ts` — device-first sync via expo-calendar (iOS EventKit / Android Calendar Provider): reads device calendars (iCloud, Google, …) and imports their events through the backend `.ics` import endpoint; UID dedupe makes re-syncs incremental. One-way (device → app) for now.
+- Screens: Calendar tab (`(tabs)/calendar.tsx`, replaces placeholder) with **Month / Week / Agenda** views + to-do overlay rows; event detail (`calendar/event/[id].tsx`) with title/notes/location, calendar picker, times, all-day switch, reminder, recurrence; calendars management (`calendar/calendars.tsx`) with create/rename/recolor/delete, device-calendar sync, and `.ics` file import (expo-document-picker); search (`calendar/search.tsx`).
+- Components: `calendar/event-row.tsx` (+ `TaskOverlayRow`), `calendar/quick-entry-sheet.tsx` (NL quick entry with live parse preview).
+- `app.json`: `expo-calendar` config plugin added with the calendar permission string (required for device sync).
+
+**Verification (2026-07-16, this branch):**
+- ✅ `npm run typecheck` passes in both `backend/` and `mobile/`.
+- ✅ `npx expo-doctor@latest` passes in `mobile/` (20/20 checks), including after adding the `expo-calendar` plugin.
+- ✅ Migrations 0000–0003 applied to the connected Neon database via `drizzle-kit migrate` (this chat's Neon DB was fresh, so all four were applied here).
+- ✅ Live smoke test against Neon: server boots, `/health` 200, `node scripts/calendar-smoke.mjs` — all 31 checks pass (auth guard, calendar/event CRUD + validation, recurring expansion with `isRecurringInstance`, task overlay, calendarId filter, search, .ics export, import + UID-dedupe re-import, cross-user 404s, cascade delete). Test users removed afterward.
+
+**Deferred (not in Phase 4 scope as shipped):**
+- Two-way device sync (writing app events back to the device calendar) — sync is one-way device → app.
+- Push/local notifications for event reminders (`reminder_minutes` is stored and editable but nothing fires yet).
+- Provider OAuth calendar sync (Google/Microsoft) — device-calendar + .ics import only.
+- Day view (Month/Week/Agenda shipped; plan mentions day view as optional polish).
+
+## Phases 5–6 — Modules ❌
+
+- Notes and Finance tab screens render `ModulePlaceholder` ("coming soon").
+- Backend has auth + mail + tasks + calendar routers mounted; `/api/notes` and `/api/finance` are stub comments in `src/index.ts`.
 - Database schema for all modules exists (done ahead of time in Phase 0), but no controllers, services, or sync logic for these modules.
-- No provider integrations yet (expo-calendar sync, GoCardless/Tink, rich-text editor).
+- No provider integrations yet (GoCardless/Tink, rich-text editor).
 
 ## Phase 7 — Polish & Launch ❌
 
@@ -126,17 +156,20 @@
 
 ## Recommended Next Steps
 
-1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database (this chat's connected Neon DB is fresh — migrations 0000–0002 are not applied here; see environment note above).
+1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks/calendar routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database.
 2. Verify the `/api/mail/process-scheduled` cron fires on the live deployment.
-3. Begin Phase 4 (Calendar module) per plan — modules ship sequentially: calendar routes/controller on the backend (mount at the `/api/calendar` stub), device-first sync via expo-calendar, and day/week/month/agenda views replacing the Calendar placeholder. First superapp integration: surface tasks with due dates inside calendar views.
-4. Optionally close Phase 3 deferrals alongside Phase 4: local notifications for due tasks (`lib/notifications.ts` is already wired), drag-and-drop reordering using the existing `sort_order` fields.
+3. Begin Phase 5 (Notes module) per plan — modules ship sequentially: notes routes/controller on the backend (mount at the `/api/notes` stub), rich-text/markdown editor, folders/tags, and full-text search replacing the Notes placeholder. Superapp integrations: link notes to mail threads, tasks, and calendar events.
+4. Optionally close Phase 3/4 deferrals alongside Phase 5: local notifications for due tasks and event reminders (`lib/notifications.ts` is already wired), two-way device-calendar sync, drag-and-drop reordering using the existing `sort_order` fields.
 
 ---
 
 ## Git History Reference
 
 ```
-573771b Merge PR #14 — dev_log + AGENTS updates for Phase 3 completion (current main)
+77cd81e Merge PR #17 — calendar-backend-and-mobile (Phase 4: calendar mobile UI, views + screens) (current main)
+6b0180d Merge PR #16 — calendar-and-events-task (Phase 4: calendar routes/controller/ics/smoke test)
+72bec9c Merge PR #15 — project-documentation-update
+573771b Merge PR #14 — dev_log + AGENTS updates for Phase 3 completion
 7adc5d9 Merge PR #13 — mobile-task-views (Phase 3: To-Do mobile UI, Things-style views)
 2f44608 Merge PR #12 — task-management-update (Phase 3: tasks smoke test)
 2b2d17e Merge PR #11 — task-management-system (Phase 3: tasks routes/controller/recurrence)

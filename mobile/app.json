@@ -39,6 +39,12 @@
       "expo-secure-store",
       "expo-sqlite",
       [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow $(PRODUCT_NAME) to read your device calendars so events can be synced into the app."
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {
