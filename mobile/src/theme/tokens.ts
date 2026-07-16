@@ -38,7 +38,7 @@ export const palette = {
   },
 } as const
 
-export type ThemeColors = typeof palette.light
+export type ThemeColors = { [K in keyof typeof palette.light]: string }
 export type ColorToken = keyof ThemeColors
 
 /** 8px spacing grid */

@@ -25,9 +25,12 @@ app.use("/api/auth", authRouter)
 app.use(notFoundHandler)
 app.use(errorHandler)
 
-const port = Number(process.env.PORT ?? 3001)
-app.listen(port, () => {
-  console.log(`superapp backend listening on :${port}`)
-})
+// On Vercel the app is exported from api/index.ts and must not bind a port.
+if (!process.env.VERCEL) {
+  const port = Number(process.env.PORT ?? 3001)
+  app.listen(port, () => {
+    console.log(`superapp backend listening on :${port}`)
+  })
+}
 
 export default app
