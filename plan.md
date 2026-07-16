@@ -74,15 +74,16 @@ superapp/
 
 | Requirement | Version | Notes |
 |---|---|---|
-| iOS (device support) | **iOS 15.1+** | RN 0.86 minimum deployment target — covers ~99% of active iPhones |
-| Android (device support) | **Android 7.0+ (API 24)** | RN 0.86 minimum `minSdkVersion` |
+| iOS (device support) | **iOS 18+** | Product decision: support previous + current major versions only (iOS 18 and iOS 26 — Apple skipped 19–25). Above RN 0.86's technical floor of 15.1, so fully compatible |
+| Android (device support) | **Android 15+ (API 35)** | Product decision: previous + current major versions only (Android 15 and 16). Above RN 0.86's technical floor of API 24, so fully compatible |
 | Android `targetSdkVersion` | **API 36 (Android 16)** | Required by Google Play policy for new apps/updates in 2026 |
 | Xcode | **16.1+** | Required to build RN 0.86; also satisfies App Store submission rules |
 | macOS | Version required by Xcode 16.1+ (Sonoma 14.5+) | For iOS builds; EAS Build cloud builders avoid the local requirement entirely |
 | JDK | 17 | RN 0.86 / Android Gradle Plugin requirement |
 | Node.js (dev machine) | 24 LTS | Same as backend — one Node version everywhere |
 
-- Pin these explicitly via `expo-build-properties` in `app.json` (`ios.deploymentTarget: "15.1"`, `android.minSdkVersion: 24`) so builds fail loudly instead of drifting.
+- Pin these explicitly via `expo-build-properties` in `app.json` (`ios.deploymentTarget: "18.0"`, `android.minSdkVersion: 35`) so builds fail loudly instead of drifting.
+- **OS support policy:** each year when new OS versions ship, raise the floor so the app always supports the previous + current major versions (e.g., when iOS 27 ships, the floor moves to iOS 26). Raising the minimum also lets you adopt new OS APIs (widgets, App Intents, Live Activities) without legacy fallback code.
 - Run `npx expo-doctor@latest` after every dependency change — it validates the whole dependency tree against SDK 57 and catches incompatible versions before they cause build errors.
 
 **Setup tasks:** scaffold with `create-expo-app` (SDK 57 template), exact-pin versions in both `package.json` files, commit lockfiles, `npx expo-doctor` in CI, EAS Build + EAS Update configured, backend deployed to Vercel, CI running typecheck + tests on both packages.
@@ -174,7 +175,7 @@ Apple-inspired minimal — clean whitespace, SF-style typography, subtle shadows
 - **Superapp glue:** universal search across modules, cross-module linking (email → task, event ↔ note, transaction → budget), unified "Today" dashboard (agenda + tasks + important emails + spending)
 - **Mobile-native polish:** share extension ("share to superapp" from any app), Siri/App Shortcuts, home-screen widgets, App Intents
 - **Performance:** lazy-loaded modules, FlashList tuning, cold-start optimization, PostgreSQL indexing + Drizzle query optimization
-- **Testing:** Jest + RN Testing Library (unit), Supertest (API), Maestro (E2E), device matrix **iOS 15.1+ / Android 7.0+ (API 24)** — matching the SDK 57 / RN 0.86 platform floor, with primary focus on iOS 17–19 and Android 13–16 where most users are
+- **Testing:** Jest + RN Testing Library (unit), Supertest (API), Maestro (E2E), device matrix **iOS 18 + iOS 26 / Android 15 + Android 16** — exactly the two supported major versions per platform, keeping the test matrix small and focused
 - **Security & release:** pen test (mandatory — mail tokens + finance data), encryption-at-rest audit, 2FA, TestFlight/Play Internal → staged rollout, Sentry (crashes) + PostHog (analytics), EAS Update for OTA fixes
 
 ---
@@ -227,7 +228,8 @@ budgets: id, user_id, category, monthly_limit, period_start
 4. Same Zod 4 major on mobile and backend (shared schemas).
 5. Exact version pins + committed lockfiles; Dependabot/Renovate gated by CI.
 6. `npx expo-doctor@latest` runs in CI and after every dependency change — it validates the entire mobile dependency tree against SDK 57.
-7. OS floors pinned via `expo-build-properties` (`ios.deploymentTarget: "15.1"`, `android.minSdkVersion: 24`, `android.targetSdkVersion: 36`) so platform requirements never drift silently.
+7. OS floors pinned via `expo-build-properties` (`ios.deploymentTarget: "18.0"`, `android.minSdkVersion: 35`, `android.targetSdkVersion: 36`) so platform requirements never drift silently.
+8. OS support policy: previous + current major OS versions only (today: iOS 18 & 26, Android 15 & 16) — floor is raised each year when new OS versions ship.
 
 ---
 
