@@ -21,6 +21,15 @@ export const pushTokenSchema = z.object({
   platform: z.enum(["ios", "android"]),
 })
 
+export const twoFaCodeSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, "Code must be 6 digits"),
+})
+
+export const twoFaVerifySchema = z.object({
+  pendingToken: z.string().min(1),
+  code: z.string().regex(/^\d{6}$/, "Code must be 6 digits"),
+})
+
 export const userSchema = z.object({
   id: z.uuid(),
   email: z.email(),
