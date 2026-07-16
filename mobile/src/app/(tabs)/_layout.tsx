@@ -5,6 +5,7 @@ import {
   Mail,
   NotebookPen,
   SquareCheckBig,
+  Sun,
   Wallet,
 } from "lucide-react-native"
 
@@ -34,6 +35,13 @@ export default function TabsLayout() {
         },
       }}
     >
+      <Tabs.Screen
+        name="today"
+        options={{
+          title: "Today",
+          tabBarIcon: ({ color, size }) => <Sun color={color} size={size} strokeWidth={1.75} />,
+        }}
+      />
       <Tabs.Screen
         name="mail"
         options={{

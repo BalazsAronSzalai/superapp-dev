@@ -10,9 +10,11 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import * as FileSystem from "expo-file-system/legacy"
 import * as Sharing from "expo-sharing"
-import { Forward, Paperclip, Reply, ReplyAll } from "lucide-react-native"
+import { Forward, Paperclip, Reply, ReplyAll, SquareCheckBig } from "lucide-react-native"
 
 import { senderName } from "@/components/mail/thread-row"
+import { LinkedItems } from "@/components/glue/linked-items"
+import { useEmailToTask } from "@/hooks/use-glue"
 import { useThread } from "@/hooks/use-mail"
 import * as mailApi from "@/lib/mail-api"
 import { useQueryClient } from "@tanstack/react-query"
@@ -187,6 +189,20 @@ export default function ThreadScreen() {
   const threadQuery = useThread(id)
   const thread = threadQuery.data?.thread
   const emails = threadQuery.data?.emails ?? []
+
+  // Superapp glue: turn this conversation into a To-Do task (auto-linked).
+  const emailToTask = useEmailToTask()
+  const onCreateTask = () => {
+    if (!thread || emailToTask.isPending) return
+    emailToTask.mutate(
+      { threadId: thread.id },
+      {
+        onSuccess: ({ task }) => {
+          router.push(`/todo/task/${task.id}`)
+        },
+      },
+    )
+  }
 
   // Mark the thread read once after it loads.
   const markedRead = useRef(false)
