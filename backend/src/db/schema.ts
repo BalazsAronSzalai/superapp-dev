@@ -157,6 +157,10 @@ export const tasks = pgTable(
     scheduledDate: timestamp("scheduled_date", { withTimezone: true }),
     priority: integer("priority").notNull().default(0),
     rrule: text("rrule"),
+    /** Things-style Someday bucket — parked, no date required. */
+    isSomeday: boolean("is_someday").notNull().default(false),
+    /** Free-form tag strings, e.g. ["errands", "work"]. */
+    tagsJson: jsonb("tags_json").notNull().default([]),
     isCompleted: boolean("is_completed").notNull().default(false),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     sortOrder: integer("sort_order").notNull().default(0),
@@ -165,6 +169,10 @@ export const tasks = pgTable(
   (t) => [
     index("tasks_user_id_idx").on(t.userId),
     index("tasks_list_id_idx").on(t.listId),
+    index("tasks_parent_task_id_idx").on(t.parentTaskId),
+    index("tasks_due_date_idx").on(t.dueDate),
+    index("tasks_scheduled_date_idx").on(t.scheduledDate),
+    index("tasks_completed_at_idx").on(t.completedAt),
   ],
 )
 
