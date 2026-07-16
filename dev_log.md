@@ -1,10 +1,10 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (Phase 5 — Notes module complete; verified in current chat environment)
-**Branch:** v0/jekigi5022-1809-4ed98a5d (base: main @ 22a75a8)
+**Date:** 2026-07-16 (Phase 5 — Notes module fully merged to main via PR #21; log updated from a fresh chat environment)
+**Branch:** v0/mobab41225-5541-f5a44dd2 (base: main @ 21d34eb)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
-> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. Migrations 0000–0003 were applied to the Neon DB connected to *this* chat on 2026-07-16 and the calendar smoke test was run live against it (see Phase 4 verification below).
+> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **five migrations (0000–0004)** — 0004 (`0004_large_wrecker.sql`) adds the Phase 5 notes columns (`notes.content_text`, `notes.is_pinned`) and the `note_versions` table. Migrations have **not** been applied in *this* chat's environment yet (fresh clone, no installs run); earlier verification runs listed below were performed in previous chat environments.
 
 ---
 
@@ -141,20 +141,21 @@
 - Provider OAuth calendar sync (Google/Microsoft) — device-calendar + .ics import only.
 - Day view (Month/Week/Agenda shipped; plan mentions day view as optional polish).
 
-## Phase 5 — Notes Module ✅ (PRs #19, #20, merged @ 22a75a8; mobile screens on this branch)
+## Phase 5 — Notes Module ✅ (PRs #19, #20, #21 — fully merged to main @ 21d34eb)
 
 **Backend (PRs #19, #20):**
+- Schema migration `0004_large_wrecker.sql`: `notes.content_text` (search snippet source), `notes.is_pinned`, `notes.updated_at` index, and new `note_versions` table (cascade FK to notes, unique `(note_id, version)` index) for version history.
 - Shared Zod schemas in `backend/src/shared/note.schemas.ts` (mirrored by hand to `mobile/src/lib/schemas/note.schemas.ts` per plan §0.1): block-based note doc (`{ type: "doc", content: Block[] }` — paragraph/heading/bullet/checklist blocks), notebook + note request/response schemas.
 - Notes controller + routes mounted at `/api/notes`: notebook CRUD, note CRUD with snippet extraction, full-text search (`/search?q=`), tag listing (`/tags`), version history (`/:id/versions`, snapshot-on-save, restore endpoint), optimistic concurrency via `baseVersion` → 409 with current note on conflict (last-write-wins with conflict detection per plan).
 - `scripts/notes-smoke.mjs` passes live against the connected Neon DB (auth guard, notebook/note CRUD + validation, search, tags, pin, versions + restore, conflict 409, cross-user 404s, SET NULL on notebook delete).
 
-**Mobile (this branch):**
+**Mobile (PR #21, merged @ 21d34eb):**
 - API layer `lib/notes-api.ts` + TanStack Query 5 hooks `hooks/use-notes.ts` (notebooks, notes, search, tags, versions/restore) with cache invalidation keyed by `noteKeys`.
 - Notes tab (`(tabs)/notes.tsx`): Apple Notes-style list with pinned section, notebook filter chips with counts, swipe to delete / pin-unpin, FAB creates a note and opens the editor.
 - Note editor (`notes/note/[id].tsx`): title + `BlockEditor` (paragraph/heading/bullet/checklist blocks with block-type toolbar, split-on-newline, backspace-merge), debounced autosave (900 ms, flush on unmount) with `baseVersion` conflict handling (409 → re-fetch + re-seed), notebook picker sheet, tag chips (add/remove), pin toggle, delete, and version-history sheet with restore.
 - Notebooks screen (`notes/notebooks.tsx`): create/rename/delete notebooks (delete moves notes back to All Notes).
 - Search screen (`notes/search.tsx`): debounced full-text search plus tag-chip browsing when no query is active.
-- Screens registered in the root stack with headers; `npx tsc --noEmit` clean; `npx expo-doctor` 20/20 checks pass.
+- Screens registered in the root stack with headers; `npx tsc --noEmit` clean and `npx expo-doctor` 20/20 checks passed at merge time (verified in the previous chat environment before PR #21 was merged).
 
 **Deferred (not in Phase 5 scope as shipped):**
 - 10tap/TipTap rich-text editor with inline marks (bold/italic), images/attachments, and drawing — v1 uses the block editor; schema already stores ProseMirror-style JSON so migration is additive.
@@ -184,7 +185,8 @@
 ## Git History Reference
 
 ```
-22a75a8 Merge PR #20 — notes-feature-development (Phase 5: notes smoke test) (current main)
+21d34eb Merge PR #21 — execute-remaining-tasks (Phase 5: notes mobile screens, editor, notebooks, search) (current main)
+22a75a8 Merge PR #20 — notes-feature-development (Phase 5: notes smoke test)
 6666d5f Merge PR #19 — plan-execution (Phase 5: notes controller/routes, shared schemas, migration)
 41fd92f Merge PR #18 — calendar-feature-development (Phase 4 wrap-up: Neon migrations, CalendarScreen overhaul)
 77cd81e Merge PR #17 — calendar-backend-and-mobile (Phase 4: calendar mobile UI, views + screens)
