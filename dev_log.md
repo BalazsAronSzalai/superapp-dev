@@ -1,10 +1,10 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (Phase 6 — Finance module complete: backend + mobile verified end-to-end in this chat environment)
-**Branch:** v0/xanehi5391-6467-e4621502 (base: main @ 70b19ef)
+**Date:** 2026-07-16 (Phase 6 — Finance module merged to main via PR #29 @ 7bc7683; Phases 0–6 all complete)
+**Branch:** v0/mobepeg306-9977-650b1e12 (base: main @ 7bc7683)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
-> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **six migrations (0000–0005)** — 0005 (`0005_lovely_black_crow.sql`) adds the Phase 6 finance changes (`finance_cards` table, `finance_accounts.type/color/is_archived`, `transactions.is_recurring/notes`, merchant index). All six migrations were applied to this chat's Neon DB on 2026-07-16 and the full finance smoke test passed live.
+> **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **six migrations (0000–0005)** — 0005 (`0005_lovely_black_crow.sql`) adds the Phase 6 finance changes (`finance_cards` table, `finance_accounts.type/color/is_archived`, `transactions.is_recurring/notes`, merchant index). All six migrations were applied and the full finance smoke test passed live in the Phase 6 chat environment on 2026-07-16; re-run migrations before live testing in any new chat.
 
 ---
 
@@ -162,7 +162,7 @@
 - Offline expo-sqlite cache + background sync (schema is ready: client-generated UUIDs + `updated_at`).
 - Cross-module links (checklist block → Tasks module): `taskId` is in the block schema but no UI creates the link yet.
 
-## Phase 6 — Finance Module ✅ (this branch)
+## Phase 6 — Finance Module ✅ (PRs #23–#29 — fully merged to main @ 7bc7683)
 
 **Done — backend:**
 - Schema migration `0005_lovely_black_crow.sql` generated and applied: new `finance_cards` table (client-UUID PK, cascade FKs to users + finance_accounts, `is_frozen`, `updated_at`), `finance_accounts.type` (checking/savings/cash/card/investment), `finance_accounts.color`, `finance_accounts.is_archived`, `transactions.is_recurring`, `transactions.notes`, and a `transactions.merchant` index.
@@ -180,7 +180,7 @@
 - Screens: Finance tab (`(tabs)/finance.tsx`, replaces placeholder) — Revolut/OTP-style dashboard with total balance (FX-converted), month in/out stats, horizontal account carousel, budget preview, recent activity, and a FAB to log transactions; account detail (`finance/account/[id].tsx`); transaction feed (`finance/transactions.tsx`) with filters; transaction detail (`finance/transaction/[id].tsx`); budgets (`finance/budgets.tsx`); virtual cards (`finance/cards.tsx`) with freeze/unfreeze; analytics (`finance/analytics.tsx`) with victory-native trend + category breakdown charts, recurring-payment list, and "remind me" → creates a To-Do task. All registered in the root stack.
 - Components: `finance/account-card.tsx`, `finance/add-account-sheet.tsx`, `finance/add-transaction-sheet.tsx`, `finance/transaction-row.tsx`, `finance/budget-row.tsx`, `finance/virtual-card.tsx`, `finance/charts.tsx` (victory-native `CartesianChart`/`BarGroup`), `finance/category-meta.ts` (category icon/color map).
 
-**Verification (2026-07-16, this branch, this chat's Neon DB):**
+**Verification (2026-07-16, on the pre-merge branch v0/xanehi5391-6467-e4621502 against that chat's Neon DB):**
 - ✅ Migrations 0000–0005 applied via `drizzle-kit migrate` (fresh Neon DB in this environment, so all six were applied here).
 - ✅ Live smoke test against Neon: server boots, `/health` 200, `node scripts/finance-smoke.mjs` — **all 52 checks pass** (one stale check fixed in the script itself: the Tasks list API requires a `view` query param per the Phase 3 contract, so the reminder-visibility check now queries `/api/tasks?view=upcoming`). Test users removed from the DB afterward.
 - ✅ `npm run typecheck` passes in both `backend/` and `mobile/`.
@@ -200,17 +200,26 @@
 
 ## Recommended Next Steps
 
-1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks/calendar/notes routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database.
+1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks/calendar/notes/finance routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database.
 2. Verify the `/api/mail/process-scheduled` cron fires on the live deployment.
-3. Begin Phase 6 (Finance module) per plan — PFM-only v1: finance routes/controller on the backend (mount at the `/api/finance` stub), account dashboard, transaction feed with rule-based categorization, budgets, and victory-native charts replacing the Finance placeholder. Bank aggregation via GoCardless Bank Account Data or Tink.
-4. Optionally close Phase 3/4/5 deferrals alongside Phase 6: local notifications for due tasks and event reminders (`lib/notifications.ts` is already wired), two-way device-calendar sync, drag-and-drop reordering using the existing `sort_order` fields, 10tap/TipTap editor evaluation, and checklist-block → Tasks linking (`taskId` already in the note block schema).
+3. Begin Phase 7 (Polish & Launch) per plan: universal search across modules, cross-module linking, a unified Today dashboard, performance pass, tests, and release tooling (EAS builds, store metadata).
+4. Optionally close earlier-phase deferrals alongside Phase 7: local notifications for due tasks and event reminders (`lib/notifications.ts` is already wired), two-way device-calendar sync, drag-and-drop reordering using the existing `sort_order` fields, 10tap/TipTap editor evaluation, checklist-block → Tasks linking (`taskId` already in the note block schema), bank aggregation via GoCardless/Tink, receipt OCR, and live FX rates.
 
 ---
 
 ## Git History Reference
 
 ```
-21d34eb Merge PR #21 — execute-remaining-tasks (Phase 5: notes mobile screens, editor, notebooks, search) (current main)
+7bc7683 Merge PR #29 — finance backend completion + dev_log update (Phase 6 wrap-up) (current main)
+70b19ef Merge PR #28 — finance dashboard follow-up (init commit branch)
+706a3d4 Update budgets.tsx (direct on main)
+68c9171 Merge PR #27 — finance mobile screens revamp (dashboard, account/transaction detail, budgets, cards, analytics)
+e1fe15f Merge PR #26 — finance mobile groundwork (init commit branch)
+bfd337c Merge PR #25 — finance account components and styles (Phase 6: mobile components, api layer, hooks)
+74785f4 Merge PR #24 — finance-feature-development (Phase 6: finance-smoke 52-check API test)
+75d8206 Merge PR #23 — finance-features-update (Phase 6: finance controller/routes, categorize/recurring/fx services)
+e0244c9 Merge PR #22 — project-dev-log-update (Phase 5 dev_log wrap-up + finance_cards migration 0005)
+21d34eb Merge PR #21 — execute-remaining-tasks (Phase 5: notes mobile screens, editor, notebooks, search)
 22a75a8 Merge PR #20 — notes-feature-development (Phase 5: notes smoke test)
 6666d5f Merge PR #19 — plan-execution (Phase 5: notes controller/routes, shared schemas, migration)
 41fd92f Merge PR #18 — calendar-feature-development (Phase 4 wrap-up: Neon migrations, CalendarScreen overhaul)
