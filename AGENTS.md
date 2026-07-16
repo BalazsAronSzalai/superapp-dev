@@ -97,7 +97,8 @@ Apple-inspired minimal: clean whitespace, SF-style typography, subtle shadows, r
 
 ## Known Gaps (as of last audit)
 
-- Backend Vercel deployment is wired (`backend/api/index.ts` + `vercel.json`, incl. the mail cron) but a live deployment has not been confirmed; production env vars (`DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, `CRON_SECRET`) still need to be set/verified there. Drizzle migrations 0000–0002 ARE applied to the connected Neon database (verified 2026-07-16, along with the live tasks-endpoint smoke test — `backend/scripts/tasks-smoke.mjs`, 34/34 checks passing).
+- Backend Vercel deployment is wired (`backend/api/index.ts` + `vercel.json`, incl. the mail cron) but a live deployment has not been confirmed; production env vars (`DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, `CRON_SECRET`) still need to be set/verified there.
+- **Neon migrations are per-environment.** Migrations 0000–0002 and the live tasks smoke test (`backend/scripts/tasks-smoke.mjs`, 34/34) were verified on 2026-07-16 against the Neon DB connected to a *previous* v0 chat. Each v0 chat may connect a fresh Neon database (the current chat's DB only has `neon_auth.*` tables — no app schema). Always run `npm run db:migrate` in `backend/` before live-testing in a new environment.
 - Mail is generic IMAP/SMTP only; Gmail API / Microsoft Graph OAuth and new-mail push notifications are deferred.
 - To-Do deferrals: geofenced location reminders, local notifications for due tasks, home-screen widgets, drag-and-drop reordering (`sort_order` columns exist but UI ordering is static).
 - Victory-native not installed (only needed in Phase 6).

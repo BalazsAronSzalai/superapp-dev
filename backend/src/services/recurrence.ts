@@ -1,5 +1,5 @@
 /**
- * Recurrence service for the To-Do module (plan.md Phase 3).
+ * Recurrence service for the To-Do (Phase 3) and Calendar (Phase 4) modules.
  *
  * Supports the RRULE subset the app generates (RFC 5545 syntax):
  *   FREQ=DAILY|WEEKLY|MONTHLY|YEARLY
@@ -158,4 +158,39 @@ export function nextOccurrence(rrule: string, base: Date, after: Date = new Date
     next = yearly(years)
   }
   return next
+}
+
+/**
+ * Expand a recurring rule into concrete occurrence start dates that fall
+ * inside [rangeStart, rangeEnd], anchored at `base` (the event's first
+ * start time — preserves the time of day). Includes `base` itself when it
+ * lies in range. Capped at `max` occurrences as a safety valve.
+ *
+ * Used by the Calendar module (plan.md Phase 4) to materialize recurring
+ * events inside a view window.
+ */
+export function occurrencesBetween(
+  rrule: string,
+  base: Date,
+  rangeStart: Date,
+  rangeEnd: Date,
+  max = 500,
+): Date[] {
+  if (rangeEnd.getTime() < rangeStart.getTime()) return []
+  const rule = parseRrule(rrule)
+  if (!rule) return []
+
+  const out: Date[] = []
+  let current = new Date(base)
+  let guard = 0
+
+  while (current.getTime() <= rangeEnd.getTime() && out.length < max && guard < max * 4) {
+    guard++
+    if (current.getTime() >= rangeStart.getTime()) out.push(new Date(current))
+    const next = nextOccurrence(rrule, base, current)
+    if (!next || next.getTime() <= current.getTime()) break
+    current = next
+  }
+
+  return out
 }
