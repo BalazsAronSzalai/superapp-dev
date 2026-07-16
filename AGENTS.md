@@ -33,7 +33,8 @@ superapp/
 
 - Phase 0 (setup/architecture): complete. Full DB schema for ALL modules exists in `backend/src/db/schema.ts`. CI (`.github/workflows/ci.yml`), `mobile/eas.json`, and the backend Vercel entrypoint (`backend/api/index.ts` + `vercel.json`) are all in place.
 - Phase 1 (shell + auth): complete. Tabs (all 5 screens exist), shared UI, JWT auth (jose + argon2), SecureStore, biometrics, push wiring.
-- Phases 2–7 (modules, polish): not started. Module tabs render `ModulePlaceholder`; only the auth router is mounted in `backend/src/index.ts`.
+- Phase 2 (Mail): complete (PR #9). Backend: `/api/mail` router + controller, IMAP sync (`services/imap.ts`), SMTP send (`services/smtp.ts`), credential encryption (`services/crypto.ts`), scheduled-send/snooze cron (`vercel.json` → `/api/mail/process-scheduled`), migration 0001 applied to Neon. Mobile: inbox tab, thread/compose/search/account-setup screens, `lib/mail-api.ts`, `hooks/use-mail.ts`, `lib/schemas/mail.schemas.ts`. Generic IMAP/SMTP only — provider OAuth (Gmail/Graph) deferred.
+- Phases 3–7 (remaining modules, polish): not started. Those module tabs render `ModulePlaceholder`; auth + mail routers are mounted in `backend/src/index.ts`, the rest are stub comments.
 - Modules ship **sequentially** (Mail → To-Do → Calendar → Notes → Finance), never in parallel.
 
 ## Commands
@@ -79,7 +80,7 @@ Backend env: copy `backend/.env.example` → `.env` (needs `DATABASE_URL` for Ne
 - State management split: **Zustand** for client/UI state (auth, theme, toggles), **TanStack Query 5** for server state (caching, mutations, optimistic updates). Local cache via expo-sqlite; fast persistence via react-native-mmkv.
 - Lists (inbox, tasks, transactions) use **FlashList v2**, not FlatList.
 - Auth: jose JWTs (access + refresh) with argon2 hashing on the backend; tokens in Expo SecureStore on mobile (`mobile/src/lib/token-store.ts`); biometric unlock via `biometric-gate.tsx`.
-- New backend module endpoints: add a router in `src/routes/`, controller in `src/controllers/`, mount it in `src/index.ts` (stub comments for `/api/mail`, `/api/tasks`, `/api/calendar`, `/api/notes`, `/api/finance` already mark the spots), validate with Zod schemas from `src/shared/`, and mirror those schemas to `mobile/src/lib/schemas/`.
+- New backend module endpoints: add a router in `src/routes/`, controller in `src/controllers/`, mount it in `src/index.ts` (stub comments for `/api/tasks`, `/api/calendar`, `/api/notes`, `/api/finance` already mark the spots; `/api/mail` is mounted and serves as the reference implementation), validate with Zod schemas from `src/shared/`, and mirror those schemas to `mobile/src/lib/schemas/`.
 - New tab screens: register the tab in `mobile/src/app/(tabs)/_layout.tsx` AND create the matching screen file — a registered tab without a screen file is a broken route.
 
 ## Design System
@@ -95,5 +96,6 @@ Apple-inspired minimal: clean whitespace, SF-style typography, subtle shadows, r
 
 ## Known Gaps (as of last audit)
 
-- Backend Vercel deployment is wired (`backend/api/index.ts` + `vercel.json`) but a live deployment has not been confirmed; production env vars (`DATABASE_URL`, JWT secrets) and the initial Drizzle migration against production Neon still need verification.
+- Backend Vercel deployment is wired (`backend/api/index.ts` + `vercel.json`, incl. the mail cron) but a live deployment has not been confirmed; production env vars (`DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, `CRON_SECRET`) still need to be set/verified there. Drizzle migrations 0000 + 0001 ARE applied to the connected Neon database (verified 2026-07-16, along with a live auth + mail-endpoint smoke test).
+- Mail is generic IMAP/SMTP only; Gmail API / Microsoft Graph OAuth and new-mail push notifications are deferred.
 - Victory-native not installed (only needed in Phase 6).
