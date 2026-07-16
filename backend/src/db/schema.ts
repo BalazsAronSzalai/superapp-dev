@@ -252,7 +252,10 @@ export const notes = pgTable(
     }),
     title: text("title").notNull().default(""),
     contentJson: jsonb("content_json").notNull().default({}),
+    /** Plain text extracted from content_json — powers search + snippets. */
+    contentText: text("content_text").notNull().default(""),
     tagsJson: jsonb("tags_json").notNull().default([]),
+    isPinned: boolean("is_pinned").notNull().default(false),
     version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -260,6 +263,26 @@ export const notes = pgTable(
   (t) => [
     index("notes_user_id_idx").on(t.userId),
     index("notes_notebook_id_idx").on(t.notebookId),
+    index("notes_updated_at_idx").on(t.updatedAt),
+  ],
+)
+
+/** Version-history snapshots (plan.md Phase 5). Server-managed, not syncable. */
+export const noteVersions = pgTable(
+  "note_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    noteId: uuid("note_id")
+      .notNull()
+      .references(() => notes.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    title: text("title").notNull().default(""),
+    contentJson: jsonb("content_json").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("note_versions_note_id_idx").on(t.noteId),
+    uniqueIndex("note_versions_note_id_version_idx").on(t.noteId, t.version),
   ],
 )
 
