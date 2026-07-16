@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native"
-import * as Clipboard from "expo-clipboard"
+import { setStringAsync } from "expo-clipboard"
 import { Copy, ShieldCheck, ShieldOff } from "lucide-react-native"
 
 import { Button } from "@/components/ui/button"
@@ -66,7 +66,7 @@ export function TwoFactorSection() {
 
   const copySecret = async () => {
     if (!setup) return
-    await Clipboard.setStringAsync(setup.manualCode)
+    await setStringAsync(setup.manualCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
