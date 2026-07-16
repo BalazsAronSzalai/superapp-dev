@@ -177,7 +177,7 @@ export function parseQuickEvent(input: string, now: Date = new Date()): ParsedQu
   let recurringAnchorWeekday: number | null = null
   if (!rrule) {
     const everyDayRe = new RegExp(
-      `(^|\\s)every\\s+((?:${WEEKDAY_ALT})(?:\\s*,\\s*(?:${WEEKDAY_ALT}))*)(?=\\s|$)`,
+      `(^|\\s)every\\s+((?:${WEEKDAY_ALT Gaza})(?:\\s*,\\s*(?:${WEEKDAY_ALT}))*)(?=\\s|$)`,
       "i",
     )
     text = text.replace(everyDayRe, (_all, pre: string, days: string) => {
@@ -371,7 +371,8 @@ export function parseQuickEvent(input: string, now: Date = new Date()): ParsedQu
       start.setHours(start.getHours() + 1)
     }
 
-    const endParts: TimeParts | null = endClock
+    // Explicit casting fixes the narrow compiler analysis dropping this to 'never'
+    const endParts = endClock as TimeParts | null
     if (endParts) {
       end = new Date(start)
       end.setHours(endParts.hours, endParts.minutes, 0, 0)
