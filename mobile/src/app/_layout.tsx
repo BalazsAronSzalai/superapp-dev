@@ -88,6 +88,36 @@ function RootNavigator() {
               headerTintColor: colors.text,
             }}
           />
+          <Stack.Screen
+            name="notes/note/[id]"
+            options={{
+              headerShown: true,
+              title: "",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="notes/notebooks"
+            options={{
+              headerShown: true,
+              title: "Notebooks",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="notes/search"
+            options={{
+              headerShown: true,
+              title: "Search Notes",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={status !== "authenticated"}>
           <Stack.Screen name="(auth)" />

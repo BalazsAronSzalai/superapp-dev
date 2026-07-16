@@ -1,7 +1,7 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (Phase 4 — Calendar module complete; verified in current chat environment)
-**Branch:** v0/cogase5003-6453-b999ba7b (base: main @ 77cd81e)
+**Date:** 2026-07-16 (Phase 5 — Notes module complete; verified in current chat environment)
+**Branch:** v0/jekigi5022-1809-4ed98a5d (base: main @ 22a75a8)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
 > **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. Migrations 0000–0003 were applied to the Neon DB connected to *this* chat on 2026-07-16 and the calendar smoke test was run live against it (see Phase 4 verification below).
@@ -17,7 +17,7 @@
 | Phase 2 | Mail Module | ✅ Complete (IMAP/SMTP; provider OAuth deferred) |
 | Phase 3 | To-Do Module | ✅ Complete (widgets/geofencing/local notifications deferred) |
 | Phase 4 | Calendar Module | ✅ Complete (device sync one-way; event write-back + reminders push deferred) |
-| Phase 5 | Notes Module | ❌ Not started (placeholder only) |
+| Phase 5 | Notes Module | ✅ Complete (block editor v1; 10tap/TipTap rich editor, images/drawing, offline SQLite cache deferred) |
 | Phase 6 | Finance Module | ❌ Not started (placeholder only) |
 | Phase 7 | Polish & Launch | ❌ Not started |
 
@@ -141,12 +141,30 @@
 - Provider OAuth calendar sync (Google/Microsoft) — device-calendar + .ics import only.
 - Day view (Month/Week/Agenda shipped; plan mentions day view as optional polish).
 
-## Phases 5–6 — Modules ❌
+## Phase 5 — Notes Module ✅ (PRs #19, #20, merged @ 22a75a8; mobile screens on this branch)
 
-- Notes and Finance tab screens render `ModulePlaceholder` ("coming soon").
-- Backend has auth + mail + tasks + calendar routers mounted; `/api/notes` and `/api/finance` are stub comments in `src/index.ts`.
-- Database schema for all modules exists (done ahead of time in Phase 0), but no controllers, services, or sync logic for these modules.
-- No provider integrations yet (GoCardless/Tink, rich-text editor).
+**Backend (PRs #19, #20):**
+- Shared Zod schemas in `backend/src/shared/note.schemas.ts` (mirrored by hand to `mobile/src/lib/schemas/note.schemas.ts` per plan §0.1): block-based note doc (`{ type: "doc", content: Block[] }` — paragraph/heading/bullet/checklist blocks), notebook + note request/response schemas.
+- Notes controller + routes mounted at `/api/notes`: notebook CRUD, note CRUD with snippet extraction, full-text search (`/search?q=`), tag listing (`/tags`), version history (`/:id/versions`, snapshot-on-save, restore endpoint), optimistic concurrency via `baseVersion` → 409 with current note on conflict (last-write-wins with conflict detection per plan).
+- `scripts/notes-smoke.mjs` passes live against the connected Neon DB (auth guard, notebook/note CRUD + validation, search, tags, pin, versions + restore, conflict 409, cross-user 404s, SET NULL on notebook delete).
+
+**Mobile (this branch):**
+- API layer `lib/notes-api.ts` + TanStack Query 5 hooks `hooks/use-notes.ts` (notebooks, notes, search, tags, versions/restore) with cache invalidation keyed by `noteKeys`.
+- Notes tab (`(tabs)/notes.tsx`): Apple Notes-style list with pinned section, notebook filter chips with counts, swipe to delete / pin-unpin, FAB creates a note and opens the editor.
+- Note editor (`notes/note/[id].tsx`): title + `BlockEditor` (paragraph/heading/bullet/checklist blocks with block-type toolbar, split-on-newline, backspace-merge), debounced autosave (900 ms, flush on unmount) with `baseVersion` conflict handling (409 → re-fetch + re-seed), notebook picker sheet, tag chips (add/remove), pin toggle, delete, and version-history sheet with restore.
+- Notebooks screen (`notes/notebooks.tsx`): create/rename/delete notebooks (delete moves notes back to All Notes).
+- Search screen (`notes/search.tsx`): debounced full-text search plus tag-chip browsing when no query is active.
+- Screens registered in the root stack with headers; `npx tsc --noEmit` clean; `npx expo-doctor` 20/20 checks pass.
+
+**Deferred (not in Phase 5 scope as shipped):**
+- 10tap/TipTap rich-text editor with inline marks (bold/italic), images/attachments, and drawing — v1 uses the block editor; schema already stores ProseMirror-style JSON so migration is additive.
+- Offline expo-sqlite cache + background sync (schema is ready: client-generated UUIDs + `updated_at`).
+- Cross-module links (checklist block → Tasks module): `taskId` is in the block schema but no UI creates the link yet.
+
+## Phase 6 — Finance Module ❌
+
+- Finance tab renders `ModulePlaceholder` ("coming soon"); `/api/finance` is a stub comment in `src/index.ts`.
+- Database schema exists (Phase 0), but no controllers, services, or provider integrations (GoCardless/Tink) yet.
 
 ## Phase 7 — Polish & Launch ❌
 
@@ -156,17 +174,20 @@
 
 ## Recommended Next Steps
 
-1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks/calendar routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database.
+1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks/calendar/notes routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database.
 2. Verify the `/api/mail/process-scheduled` cron fires on the live deployment.
-3. Begin Phase 5 (Notes module) per plan — modules ship sequentially: notes routes/controller on the backend (mount at the `/api/notes` stub), rich-text/markdown editor, folders/tags, and full-text search replacing the Notes placeholder. Superapp integrations: link notes to mail threads, tasks, and calendar events.
-4. Optionally close Phase 3/4 deferrals alongside Phase 5: local notifications for due tasks and event reminders (`lib/notifications.ts` is already wired), two-way device-calendar sync, drag-and-drop reordering using the existing `sort_order` fields.
+3. Begin Phase 6 (Finance module) per plan — PFM-only v1: finance routes/controller on the backend (mount at the `/api/finance` stub), account dashboard, transaction feed with rule-based categorization, budgets, and victory-native charts replacing the Finance placeholder. Bank aggregation via GoCardless Bank Account Data or Tink.
+4. Optionally close Phase 3/4/5 deferrals alongside Phase 6: local notifications for due tasks and event reminders (`lib/notifications.ts` is already wired), two-way device-calendar sync, drag-and-drop reordering using the existing `sort_order` fields, 10tap/TipTap editor evaluation, and checklist-block → Tasks linking (`taskId` already in the note block schema).
 
 ---
 
 ## Git History Reference
 
 ```
-77cd81e Merge PR #17 — calendar-backend-and-mobile (Phase 4: calendar mobile UI, views + screens) (current main)
+22a75a8 Merge PR #20 — notes-feature-development (Phase 5: notes smoke test) (current main)
+6666d5f Merge PR #19 — plan-execution (Phase 5: notes controller/routes, shared schemas, migration)
+41fd92f Merge PR #18 — calendar-feature-development (Phase 4 wrap-up: Neon migrations, CalendarScreen overhaul)
+77cd81e Merge PR #17 — calendar-backend-and-mobile (Phase 4: calendar mobile UI, views + screens)
 6b0180d Merge PR #16 — calendar-and-events-task (Phase 4: calendar routes/controller/ics/smoke test)
 72bec9c Merge PR #15 — project-documentation-update
 573771b Merge PR #14 — dev_log + AGENTS updates for Phase 3 completion
