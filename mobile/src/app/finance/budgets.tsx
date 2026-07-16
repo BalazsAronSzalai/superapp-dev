@@ -181,7 +181,7 @@ export default function BudgetsScreen() {
                 })}
               </View>
             </View>
-          ) : editing && editing !== "new" ? (
+          ) : editing ? (
             <Text style={[styles.editCategory, { color: colors.text }]}>
               {categoryMeta(editing.category).label}
             </Text>
