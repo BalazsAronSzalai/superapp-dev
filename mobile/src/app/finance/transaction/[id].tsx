@@ -16,6 +16,7 @@ import * as ImagePicker from "expo-image-picker"
 import { Camera, Trash2 } from "lucide-react-native"
 
 import { categoryMeta, withAlpha } from "@/components/finance/category-meta"
+import { LinkedItems } from "@/components/glue/linked-items"
 import { formatTransactionDate } from "@/components/finance/transaction-row"
 import { Button } from "@/components/ui/button"
 import { TextField } from "@/components/ui/text-field"
@@ -235,6 +236,9 @@ export default function TransactionDetailScreen() {
       {dirty ? (
         <Button title="Save Changes" onPress={save} loading={patchMutation.isPending} />
       ) : null}
+
+      {/* Cross-module links (superapp glue) */}
+      <LinkedItems entityType="transaction" entityId={transaction.id} />
 
       <Pressable
         accessibilityRole="button"

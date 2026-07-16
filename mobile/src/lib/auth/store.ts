@@ -3,9 +3,16 @@ import { persist } from "zustand/middleware"
 import { api } from "@/lib/api"
 import { setTokens, clearTokens, getRefreshToken, getAccessToken } from "@/lib/token-store"
 import { zustandStorage } from "@/lib/storage"
-import { authResponseSchema, type User } from "@/lib/schemas/auth.schemas"
+import {
+  authResponseSchema,
+  loginResponseSchema,
+  type User,
+} from "@/lib/schemas/auth.schemas"
 
 type AuthStatus = "loading" | "unauthenticated" | "authenticated"
+
+/** Result of a login attempt: signed in, or a 2FA challenge to complete. */
+export type LoginResult = { requires2fa: false } | { requires2fa: true; pendingToken: string }
 
 interface AuthState {
   status: AuthStatus
@@ -14,10 +21,14 @@ interface AuthState {
   biometricLockEnabled: boolean
   hydrate: () => Promise<void>
   register: (email: string, password: string) => Promise<void>
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<LoginResult>
+  /** Step 2 of login for 2FA-enabled accounts: TOTP code → real tokens. */
+  verify2fa: (pendingToken: string, code: string) => Promise<void>
   logout: () => Promise<void>
   setHasOnboarded: (v: boolean) => void
   setBiometricLockEnabled: (v: boolean) => void
+  /** Refresh the cached user (e.g. after enabling/disabling 2FA). */
+  setUser: (user: User) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -62,6 +73,22 @@ export const useAuthStore = create<AuthState>()(
           body: { email, password },
           auth: false,
         })
+        const parsed = loginResponseSchema.parse(data)
+        // 2FA-enabled accounts get a pending token instead of real tokens.
+        if ("requires2fa" in parsed) {
+          return { requires2fa: true, pendingToken: parsed.pendingToken }
+        }
+        await setTokens(parsed.tokens.accessToken, parsed.tokens.refreshToken)
+        set({ status: "authenticated", user: parsed.user })
+        return { requires2fa: false }
+      },
+
+      verify2fa: async (pendingToken, code) => {
+        const data = await api("/api/auth/2fa/verify", {
+          method: "POST",
+          body: { pendingToken, code },
+          auth: false,
+        })
         const parsed = authResponseSchema.parse(data)
         await setTokens(parsed.tokens.accessToken, parsed.tokens.refreshToken)
         set({ status: "authenticated", user: parsed.user })
@@ -81,6 +108,7 @@ export const useAuthStore = create<AuthState>()(
 
       setHasOnboarded: (hasOnboarded) => set({ hasOnboarded }),
       setBiometricLockEnabled: (biometricLockEnabled) => set({ biometricLockEnabled }),
+      setUser: (user) => set({ user }),
     }),
     {
       name: "auth-preferences",
