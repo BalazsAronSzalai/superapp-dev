@@ -1,7 +1,7 @@
 # Development Log — Superapp
 
 **Date:** 2026-07-16 (Phase 6 — Finance module merged to main via PR #29 @ 7bc7683; Phases 0–6 all complete)
-**Branch:** v0/mobepeg306-9977-650b1e12 (base: main @ 7bc7683)
+**Branch:** dev-log-update (base: main @ 7bc7683)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
 > **Environment note:** each v0 chat may connect a **different Neon database**, so always run `npm run db:migrate` in `backend/` before any live testing in a new environment. There are now **six migrations (0000–0005)** — 0005 (`0005_lovely_black_crow.sql`) adds the Phase 6 finance changes (`finance_cards` table, `finance_accounts.type/color/is_archived`, `transactions.is_recurring/notes`, merchant index). All six migrations were applied and the full finance smoke test passed live in the Phase 6 chat environment on 2026-07-16; re-run migrations before live testing in any new chat.
