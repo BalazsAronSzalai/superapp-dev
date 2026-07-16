@@ -49,6 +49,16 @@ function RootNavigator() {
             }}
           />
           <Stack.Screen
+            name="search"
+            options={{
+              headerShown: true,
+              title: "Search",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
             name="mail/account-setup"
             options={{
               presentation: "modal",
