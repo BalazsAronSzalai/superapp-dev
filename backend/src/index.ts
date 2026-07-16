@@ -6,6 +6,7 @@ import { mailRouter } from "./routes/mail.routes.js"
 import { tasksRouter } from "./routes/tasks.routes.js"
 import { calendarRouter } from "./routes/calendar.routes.js"
 import { notesRouter } from "./routes/notes.routes.js"
+import { financeRouter } from "./routes/finance.routes.js"
 import { errorHandler, notFoundHandler } from "./middleware/errors.js"
 
 const app = express()
@@ -23,9 +24,7 @@ app.use("/api/mail", mailRouter)
 app.use("/api/tasks", tasksRouter)
 app.use("/api/calendar", calendarRouter)
 app.use("/api/notes", notesRouter)
-
-// Module routers land here in later phases:
-// app.use("/api/finance", finRouter)    — Phase 6
+app.use("/api/finance", financeRouter)
 
 app.use(notFoundHandler)
 app.use(errorHandler)
