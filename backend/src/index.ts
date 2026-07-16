@@ -4,6 +4,7 @@ import cors from "cors"
 import { authRouter } from "./routes/auth.routes.js"
 import { mailRouter } from "./routes/mail.routes.js"
 import { tasksRouter } from "./routes/tasks.routes.js"
+import { calendarRouter } from "./routes/calendar.routes.js"
 import { errorHandler, notFoundHandler } from "./middleware/errors.js"
 
 const app = express()
@@ -19,9 +20,9 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter)
 app.use("/api/mail", mailRouter)
 app.use("/api/tasks", tasksRouter)
+app.use("/api/calendar", calendarRouter)
 
 // Module routers land here in later phases:
-// app.use("/api/calendar", calRouter)   — Phase 4
 // app.use("/api/notes", notesRouter)    — Phase 5
 // app.use("/api/finance", finRouter)    — Phase 6
 
