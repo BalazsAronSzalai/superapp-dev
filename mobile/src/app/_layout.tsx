@@ -118,6 +118,66 @@ function RootNavigator() {
               headerTintColor: colors.text,
             }}
           />
+          <Stack.Screen
+            name="finance/transactions"
+            options={{
+              headerShown: true,
+              title: "Transactions",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance/transaction/[id]"
+            options={{
+              headerShown: true,
+              title: "Transaction",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance/account/[id]"
+            options={{
+              headerShown: true,
+              title: "Account",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance/budgets"
+            options={{
+              headerShown: true,
+              title: "Budgets",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance/cards"
+            options={{
+              headerShown: true,
+              title: "Cards",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance/analytics"
+            options={{
+              headerShown: true,
+              title: "Analytics",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={status !== "authenticated"}>
           <Stack.Screen name="(auth)" />
