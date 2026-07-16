@@ -7,10 +7,15 @@ import { tasksRouter } from "./routes/tasks.routes.js"
 import { calendarRouter } from "./routes/calendar.routes.js"
 import { notesRouter } from "./routes/notes.routes.js"
 import { financeRouter } from "./routes/finance.routes.js"
+import { searchRouter, linksRouter, todayRouter } from "./routes/glue.routes.js"
 import { errorHandler, notFoundHandler } from "./middleware/errors.js"
+import { securityHeaders } from "./middleware/security-headers.js"
+import { globalRateLimit } from "./middleware/rate-limit.js"
 
 const app = express()
 
+app.disable("x-powered-by")
+app.use(securityHeaders)
 app.use(cors())
 // 16 MB: send payloads may carry base64 attachments (~10 MB decoded cap).
 app.use(express.json({ limit: "16mb" }))
@@ -19,12 +24,16 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", uptime: process.uptime() })
 })
 
+app.use("/api", globalRateLimit)
 app.use("/api/auth", authRouter)
 app.use("/api/mail", mailRouter)
 app.use("/api/tasks", tasksRouter)
 app.use("/api/calendar", calendarRouter)
 app.use("/api/notes", notesRouter)
 app.use("/api/finance", financeRouter)
+app.use("/api/search", searchRouter)
+app.use("/api/links", linksRouter)
+app.use("/api/today", todayRouter)
 
 app.use(notFoundHandler)
 app.use(errorHandler)
