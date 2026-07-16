@@ -1,4 +1,24 @@
-import { QueryClient } from "@tanstack/react-query"
+import { AppState, Platform, type AppStateStatus } from "react-native"
+import NetInfo from "@react-native-community/netinfo"
+import { focusManager, onlineManager, QueryClient } from "@tanstack/react-query"
+
+/**
+ * React Native has no window focus/online events, so wire TanStack Query's
+ * managers to AppState (refetch stale queries when the app foregrounds) and
+ * NetInfo (pause/resume queries with connectivity). Web keeps the defaults.
+ * Idempotent module side effects — safe with Fast Refresh.
+ */
+if (Platform.OS !== "web") {
+  onlineManager.setEventListener((setOnline) =>
+    NetInfo.addEventListener((state) => {
+      setOnline(state.isConnected ?? true)
+    }),
+  )
+
+  AppState.addEventListener("change", (status: AppStateStatus) => {
+    focusManager.setFocused(status === "active")
+  })
+}
 
 /**
  * TanStack Query 5 — server state (caching, mutations, optimistic updates).
