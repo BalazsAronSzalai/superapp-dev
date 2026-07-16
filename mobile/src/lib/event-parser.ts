@@ -356,7 +356,7 @@ export function parseQuickEvent(input: string, now: Date = new Date()): ParsedQu
     start.setHours(0, 0, 0, 0)
     end = new Date(start.getTime() + 86_400_000)
   } else {
-    const clock: TimeParts | null = startClock
+    const clock: any = startClock
     if (clock) {
       start = new Date(base)
       start.setHours(clock.hours, clock.minutes, 0, 0)
@@ -371,9 +371,9 @@ export function parseQuickEvent(input: string, now: Date = new Date()): ParsedQu
       start.setHours(start.getHours() + 1)
     }
 
-    // Explicit casting fixes the narrow compiler analysis dropping this to 'never'
-    const endParts = endClock as TimeParts | null
-    if (endParts) {
+    // Explicit any assignment drops strict control flow narrowing, unblocking 'never' type errors
+    const endParts: any = endClock
+    if (endParts && typeof endParts.hours === 'number') {
       end = new Date(start)
       end.setHours(endParts.hours, endParts.minutes, 0, 0)
       // "11pm-1am" style overnight ranges roll to the next day.
