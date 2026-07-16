@@ -31,8 +31,8 @@ superapp/
 
 ## Current Status (see dev_log.md for details)
 
-- Phase 0 (setup/architecture): complete. Full DB schema for ALL modules exists in `backend/src/db/schema.ts`.
-- Phase 1 (shell + auth): mostly complete. Tabs, shared UI, JWT auth (jose + argon2), SecureStore, biometrics, push wiring.
+- Phase 0 (setup/architecture): complete. Full DB schema for ALL modules exists in `backend/src/db/schema.ts`. CI (`.github/workflows/ci.yml`), `mobile/eas.json`, and the backend Vercel entrypoint (`backend/api/index.ts` + `vercel.json`) are all in place.
+- Phase 1 (shell + auth): complete. Tabs (all 5 screens exist), shared UI, JWT auth (jose + argon2), SecureStore, biometrics, push wiring.
 - Phases 2–7 (modules, polish): not started. Module tabs render `ModulePlaceholder`; only the auth router is mounted in `backend/src/index.ts`.
 - Modules ship **sequentially** (Mail → To-Do → Calendar → Notes → Finance), never in parallel.
 
@@ -47,8 +47,8 @@ npx expo install <pkg> # ALWAYS use this for any package with native code
 npm run start          # expo start
 npm run ios / android / web
 npm run lint           # expo lint
-npx tsc --noEmit       # typecheck
-npx expo-doctor@latest # REQUIRED after every dependency change
+npm run typecheck      # tsc --noEmit (also run in CI)
+npx expo-doctor@latest # REQUIRED after every dependency change (also run in CI)
 ```
 
 ### backend/
@@ -80,7 +80,7 @@ Backend env: copy `backend/.env.example` → `.env` (needs `DATABASE_URL` for Ne
 - Lists (inbox, tasks, transactions) use **FlashList v2**, not FlatList.
 - Auth: jose JWTs (access + refresh) with argon2 hashing on the backend; tokens in Expo SecureStore on mobile (`mobile/src/lib/token-store.ts`); biometric unlock via `biometric-gate.tsx`.
 - New backend module endpoints: add a router in `src/routes/`, controller in `src/controllers/`, mount it in `src/index.ts` (stub comments for `/api/mail`, `/api/tasks`, `/api/calendar`, `/api/notes`, `/api/finance` already mark the spots), validate with Zod schemas from `src/shared/`, and mirror those schemas to `mobile/src/lib/schemas/`.
-- New tab screens: register the tab in `mobile/src/app/(tabs)/_layout.tsx` AND create the matching screen file. (Known bug: a `mail` tab is registered but `(tabs)/mail.tsx` is missing.)
+- New tab screens: register the tab in `mobile/src/app/(tabs)/_layout.tsx` AND create the matching screen file — a registered tab without a screen file is a broken route.
 
 ## Design System
 
@@ -95,5 +95,5 @@ Apple-inspired minimal: clean whitespace, SF-style typography, subtle shadows, r
 
 ## Known Gaps (as of last audit)
 
-- `(tabs)/mail.tsx` missing though the tab is registered (broken route).
-- No CI (`.github/` missing), no `eas.json` (EAS Build/Update unconfigured), backend not confirmed deployed to Vercel.
+- Backend Vercel deployment is wired (`backend/api/index.ts` + `vercel.json`) but a live deployment has not been confirmed; production env vars (`DATABASE_URL`, JWT secrets) and the initial Drizzle migration against production Neon still need verification.
+- Victory-native not installed (only needed in Phase 6).
