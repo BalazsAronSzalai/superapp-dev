@@ -1,8 +1,10 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (updated after PRs #11–#13 — To-Do module + verification)
-**Branch:** v0/hemexi1241-1441-b13afd82 (base: main @ 7adc5d9)
+**Date:** 2026-07-16 (audit refresh — no code changes since PR #14; docs synced to current chat environment)
+**Branch:** v0/xiticiy299-1315-46e615c9 (base: main @ 573771b)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
+
+> **Environment note (this chat, 2026-07-16):** the Neon database connected to the current v0 chat is **fresh** — it only contains `neon_auth.*` tables; the app's 15 `public` tables from migrations 0000–0002 are **not** applied here. The migration/smoke-test verification recorded below was performed against the Neon DB connected in the previous chat. Each v0 chat may connect a different Neon database, so run `npm run db:migrate` in `backend/` before any live testing in a new environment.
 
 ---
 
@@ -124,7 +126,7 @@
 
 ## Recommended Next Steps
 
-1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars (migrations 0000–0002 are already applied to the connected Neon DB).
+1. Deploy the backend to Vercel and verify `/health` + auth/mail/tasks routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars, and run `npm run db:migrate` against the production database (this chat's connected Neon DB is fresh — migrations 0000–0002 are not applied here; see environment note above).
 2. Verify the `/api/mail/process-scheduled` cron fires on the live deployment.
 3. Begin Phase 4 (Calendar module) per plan — modules ship sequentially: calendar routes/controller on the backend (mount at the `/api/calendar` stub), device-first sync via expo-calendar, and day/week/month/agenda views replacing the Calendar placeholder. First superapp integration: surface tasks with due dates inside calendar views.
 4. Optionally close Phase 3 deferrals alongside Phase 4: local notifications for due tasks (`lib/notifications.ts` is already wired), drag-and-drop reordering using the existing `sort_order` fields.
@@ -134,6 +136,7 @@
 ## Git History Reference
 
 ```
+573771b Merge PR #14 — dev_log + AGENTS updates for Phase 3 completion (current main)
 7adc5d9 Merge PR #13 — mobile-task-views (Phase 3: To-Do mobile UI, Things-style views)
 2f44608 Merge PR #12 — task-management-update (Phase 3: tasks smoke test)
 2b2d17e Merge PR #11 — task-management-system (Phase 3: tasks routes/controller/recurrence)
