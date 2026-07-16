@@ -297,10 +297,16 @@ export const financeAccounts = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    /** "manual" for now; bank aggregators (GoCardless/Tink) later. */
     provider: text("provider").notNull(),
     name: text("name").notNull(),
+    type: text("type", { enum: ["checking", "savings", "cash", "card"] })
+      .notNull()
+      .default("checking"),
+    color: text("color"),
     currency: text("currency").notNull().default("HUF"),
     balance: numeric("balance", { precision: 14, scale: 2 }).notNull().default("0"),
+    isArchived: boolean("is_archived").notNull().default(false),
     lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -321,13 +327,38 @@ export const transactions = pgTable(
     date: timestamp("date", { withTimezone: true }).notNull(),
     description: text("description"),
     merchant: text("merchant"),
+    /** Base64 data-URL of a compressed receipt photo (v1; no OCR). */
     receiptUrl: text("receipt_url"),
+    isRecurring: boolean("is_recurring").notNull().default(false),
+    notes: text("notes"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("transactions_finance_account_id_idx").on(t.financeAccountId),
     index("transactions_date_idx").on(t.date),
+    index("transactions_merchant_idx").on(t.merchant),
   ],
+)
+
+/** Mock virtual card (plan.md Phase 6) — persisted freeze state, no real issuing. */
+export const financeCards = pgTable(
+  "finance_cards",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    financeAccountId: uuid("finance_account_id")
+      .notNull()
+      .references(() => financeAccounts.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    last4: text("last4").notNull(),
+    expiryMonth: integer("expiry_month").notNull(),
+    expiryYear: integer("expiry_year").notNull(),
+    isFrozen: boolean("is_frozen").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("finance_cards_user_id_idx").on(t.userId)],
 )
 
 export const budgets = pgTable(
