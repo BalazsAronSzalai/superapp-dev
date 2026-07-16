@@ -3,6 +3,7 @@ import { Pressable } from "react-native"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { TwoFactorSection } from "@/components/settings/two-factor-section"
 import { useAuthStore } from "@/lib/auth/store"
 import { radius, spacing, typography, useAppTheme, useThemePreference } from "@/theme"
 
@@ -62,6 +63,8 @@ export default function SettingsScreen() {
           })}
         </View>
       </Card>
+
+      <TwoFactorSection />
 
       {Platform.OS !== "web" ? (
         <Card>

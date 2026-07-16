@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -33,6 +33,13 @@ export default function SearchScreen() {
   const searchQuery = useSearchMail(debounced)
   const results = searchQuery.data ?? []
   const active = debounced.length >= 2
+
+  const renderItem = useCallback(
+    ({ item }: { item: MailThread }) => (
+      <ThreadRow thread={item} onPress={() => router.push(`/mail/thread/${item.id}`)} />
+    ),
+    [router],
+  )
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.background }]}>

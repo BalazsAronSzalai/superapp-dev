@@ -1,5 +1,6 @@
 // Shared rows for calendar views: events (color-coded by calendar) and
 // overlaid tasks (first superapp integration — plan.md Phase 4).
+import { memo } from "react"
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import { CheckCircle2, Circle, MapPin, Repeat } from "lucide-react-native"
 
@@ -54,7 +55,7 @@ interface EventRowProps {
   hideTime?: boolean
 }
 
-export function EventRow({ event, color, onPress, hideTime = false }: EventRowProps) {
+function EventRowInner({ event, color, onPress, hideTime = false }: EventRowProps) {
   const { colors } = useAppTheme()
   const barColor = color ?? colors.accent
 
@@ -93,6 +94,9 @@ export function EventRow({ event, color, onPress, hideTime = false }: EventRowPr
   )
 }
 
+/** Memoized: list rows only re-render when their event data changes. */
+export const EventRow = memo(EventRowInner)
+
 // ---------------------------------------------------------------------------
 // TaskOverlayRow — a to-do surfaced inside calendar views
 // ---------------------------------------------------------------------------
@@ -102,7 +106,7 @@ interface TaskOverlayRowProps {
   onPress?: (task: CalendarTask) => void
 }
 
-export function TaskOverlayRow({ task, onPress }: TaskOverlayRowProps) {
+function TaskOverlayRowInner({ task, onPress }: TaskOverlayRowProps) {
   const { colors } = useAppTheme()
   const Icon = task.isCompleted ? CheckCircle2 : Circle
   const tint = task.isCompleted
@@ -142,6 +146,9 @@ export function TaskOverlayRow({ task, onPress }: TaskOverlayRowProps) {
     </Pressable>
   )
 }
+
+/** Memoized: list rows only re-render when their task data changes. */
+export const TaskOverlayRow = memo(TaskOverlayRowInner)
 
 const styles = StyleSheet.create({
   row: {

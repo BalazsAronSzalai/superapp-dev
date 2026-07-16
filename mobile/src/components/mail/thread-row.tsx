@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import { Flag, Paperclip } from "lucide-react-native"
 
@@ -37,7 +38,7 @@ interface ThreadRowProps {
   onPress: () => void
 }
 
-export function ThreadRow({ thread, onPress }: ThreadRowProps) {
+function ThreadRowInner({ thread, onPress }: ThreadRowProps) {
   const { colors } = useAppTheme()
 
   return (
@@ -97,6 +98,9 @@ export function ThreadRow({ thread, onPress }: ThreadRowProps) {
     </Pressable>
   )
 }
+
+/** Memoized: FlashList rows only re-render when their thread data changes. */
+export const ThreadRow = memo(ThreadRowInner)
 
 const styles = StyleSheet.create({
   row: {
