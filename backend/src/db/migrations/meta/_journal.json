@@ -43,6 +43,13 @@
       "when": 1784222767276,
       "tag": "0005_lovely_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784234744777,
+      "tag": "0006_dazzling_echo",
+      "breakpoints": true
     }
   ]
 }

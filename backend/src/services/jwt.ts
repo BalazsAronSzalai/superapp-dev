@@ -23,6 +23,33 @@ export async function signAccessToken(userId: string): Promise<string> {
 export async function verifyAccessToken(token: string): Promise<string | null> {
   try {
     const { payload } = await jwtVerify(token, secret, { issuer: ISSUER })
+    // Purpose-scoped tokens (e.g. pending 2FA) are not valid access tokens.
+    if (payload.purpose !== undefined) return null
+    return typeof payload.sub === "string" ? payload.sub : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Short-lived, purpose-scoped token bridging login → 2FA verification.
+ * Not usable as an access token (purpose claim checked on both sides).
+ */
+const PENDING_2FA_TTL = "5m"
+
+export async function signPending2faToken(userId: string): Promise<string> {
+  return new SignJWT({ sub: userId, purpose: "2fa" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuer(ISSUER)
+    .setIssuedAt()
+    .setExpirationTime(PENDING_2FA_TTL)
+    .sign(secret)
+}
+
+export async function verifyPending2faToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret, { issuer: ISSUER })
+    if (payload.purpose !== "2fa") return null
     return typeof payload.sub === "string" ? payload.sub : null
   } catch {
     return null

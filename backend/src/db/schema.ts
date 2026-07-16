@@ -21,6 +21,9 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
+    /** TOTP secret encrypted at rest (AES-GCM via services/crypto.ts). */
+    totpSecretEncrypted: text("totp_secret_encrypted"),
+    totpEnabled: boolean("totp_enabled").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -374,6 +377,46 @@ export const budgets = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("budgets_user_id_idx").on(t.userId)],
+)
+
+// ---------------------------------------------------------------------------
+// Superapp glue — cross-module entity links (plan.md Phase 7)
+// ---------------------------------------------------------------------------
+
+export const ENTITY_LINK_TYPES = [
+  "email",
+  "thread",
+  "task",
+  "event",
+  "note",
+  "transaction",
+  "budget",
+] as const
+
+export const entityLinks = pgTable(
+  "entity_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceType: text("source_type", { enum: ENTITY_LINK_TYPES }).notNull(),
+    sourceId: uuid("source_id").notNull(),
+    targetType: text("target_type", { enum: ENTITY_LINK_TYPES }).notNull(),
+    targetId: uuid("target_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("entity_links_tuple_idx").on(
+      t.userId,
+      t.sourceType,
+      t.sourceId,
+      t.targetType,
+      t.targetId,
+    ),
+    index("entity_links_source_idx").on(t.sourceType, t.sourceId),
+    index("entity_links_target_idx").on(t.targetType, t.targetId),
+  ],
 )
 
 // ---------------------------------------------------------------------------
