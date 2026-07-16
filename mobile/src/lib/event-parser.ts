@@ -177,7 +177,7 @@ export function parseQuickEvent(input: string, now: Date = new Date()): ParsedQu
   let recurringAnchorWeekday: number | null = null
   if (!rrule) {
     const everyDayRe = new RegExp(
-      `(^|\\s)every\\s+((?:${WEEKDAY_ALT Gaza})(?:\\s*,\\s*(?:${WEEKDAY_ALT}))*)(?=\\s|$)`,
+      `(^|\\s)every\\s+((?:${WEEKDAY_ALT})(?:\\s*,\\s*(?:${WEEKDAY_ALT}))*)(?=\\s|$)`,
       "i",
     )
     text = text.replace(everyDayRe, (_all, pre: string, days: string) => {
