@@ -203,18 +203,22 @@ export const events = pgTable(
       .notNull()
       .references(() => calendars.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    description: text("description"),
     startTime: timestamp("start_time", { withTimezone: true }).notNull(),
     endTime: timestamp("end_time", { withTimezone: true }).notNull(),
     allDay: boolean("all_day").notNull().default(false),
     location: text("location"),
     rrule: text("rrule"),
     reminderMinutes: integer("reminder_minutes"),
+    /** IANA timezone the event was created in (display hint; times are absolute). */
+    timezone: text("timezone"),
     externalId: text("external_id"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("events_calendar_id_idx").on(t.calendarId),
     index("events_start_time_idx").on(t.startTime),
+    index("events_end_time_idx").on(t.endTime),
   ],
 )
 
