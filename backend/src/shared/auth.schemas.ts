@@ -34,6 +34,7 @@ export const userSchema = z.object({
   id: z.uuid(),
   email: z.email(),
   createdAt: z.string(),
+  totpEnabled: z.boolean(),
 })
 
 export const authTokensSchema = z.object({
@@ -46,10 +47,31 @@ export const authResponseSchema = z.object({
   tokens: authTokensSchema,
 })
 
+/** Login response when the account has 2FA enabled — verify to get tokens. */
+export const pending2faResponseSchema = z.object({
+  requires2fa: z.literal(true),
+  pendingToken: z.string(),
+})
+
+/** Login can return either full tokens or a 2FA challenge. */
+export const loginResponseSchema = z.union([authResponseSchema, pending2faResponseSchema])
+
+export const twoFaSetupResponseSchema = z.object({
+  /** otpauth:// URI for authenticator apps (QR-encodable). */
+  uri: z.string(),
+  /** Base32 secret for manual entry. */
+  manualCode: z.string(),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type RefreshInput = z.infer<typeof refreshSchema>
 export type PushTokenInput = z.infer<typeof pushTokenSchema>
+export type TwoFaCodeInput = z.infer<typeof twoFaCodeSchema>
+export type TwoFaVerifyInput = z.infer<typeof twoFaVerifySchema>
 export type User = z.infer<typeof userSchema>
 export type AuthTokens = z.infer<typeof authTokensSchema>
 export type AuthResponse = z.infer<typeof authResponseSchema>
+export type Pending2faResponse = z.infer<typeof pending2faResponseSchema>
+export type LoginResponse = z.infer<typeof loginResponseSchema>
+export type TwoFaSetupResponse = z.infer<typeof twoFaSetupResponseSchema>
