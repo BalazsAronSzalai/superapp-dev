@@ -25,6 +25,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { SheetModal } from "@/components/ui/modal"
+import { LinkedItems } from "@/components/glue/linked-items"
 import { formatTaskDate } from "@/components/todo/task-row"
 import {
   taskKeys,
@@ -374,6 +375,9 @@ export default function TaskDetailScreen() {
           />
         </View>
       </View>
+
+      {/* Cross-module links (superapp glue) */}
+      <LinkedItems entityType="task" entityId={task.id} />
 
       <Button
         title="Delete To-Do"

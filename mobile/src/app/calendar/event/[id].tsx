@@ -24,6 +24,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { SheetModal } from "@/components/ui/modal"
+import { LinkedItems } from "@/components/glue/linked-items"
 import { formatDayLabel, formatEventTime } from "@/components/calendar/event-row"
 import {
   useCalendars,
@@ -351,6 +352,9 @@ export default function EventDetailScreen() {
           </>
         ) : null}
       </View>
+
+      {/* Cross-module links (superapp glue) */}
+      <LinkedItems entityType="event" entityId={event.id} />
 
       <Button
         title="Delete Event"

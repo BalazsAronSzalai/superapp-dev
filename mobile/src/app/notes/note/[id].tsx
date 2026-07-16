@@ -28,6 +28,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { SheetModal } from "@/components/ui/modal"
+import { LinkedItems } from "@/components/glue/linked-items"
 import { BlockEditor, emptyParagraph } from "@/components/notes/block-editor"
 import { formatNoteDate } from "@/components/notes/note-row"
 import {
@@ -342,6 +343,9 @@ export default function NoteEditorScreen() {
             </View>
           </View>
         </View>
+
+        {/* Cross-module links (superapp glue) */}
+        <LinkedItems entityType="note" entityId={note.id} />
       </ScrollView>
 
       {/* Notebook picker */}
