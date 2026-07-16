@@ -1,7 +1,7 @@
 # Development Log — Superapp
 
-**Date:** 2026-07-16 (updated after PR #5 merge)
-**Branch:** v0/morovo9733-1176-da457a9b (base: main @ c95ce84)
+**Date:** 2026-07-16 (updated after PR #9 merge — Mail module + verification)
+**Branch:** v0/rohed68443-3036-ccfcc960 (base: main @ 4c01b58)
 **Reference:** plan.md (Final — Mobile-Only, Version-Pinned Stack)
 
 ---
@@ -12,7 +12,7 @@
 |---|---|---|
 | Phase 0 | Project Setup & Architecture | ✅ Complete |
 | Phase 1 | Superapp Shell & Navigation | ✅ Complete (pending live Vercel deploy verification) |
-| Phase 2 | Mail Module | ❌ Not started |
+| Phase 2 | Mail Module | ✅ Complete (IMAP/SMTP; provider OAuth deferred) |
 | Phase 3 | To-Do Module | ❌ Not started (placeholder only) |
 | Phase 4 | Calendar Module | ❌ Not started (placeholder only) |
 | Phase 5 | Notes Module | ❌ Not started (placeholder only) |
@@ -61,12 +61,36 @@
 **Remaining gaps:**
 - Live Vercel deployment of the backend not yet confirmed (entrypoint + `vercel.json` are in place).
 
-## Phases 2–6 — Modules ❌
+## Phase 2 — Mail Module ✅ (PR #9, merged @ 4c01b58)
 
-- All module tab screens (To-Do, Calendar, Notes, Finance) render `ModulePlaceholder` ("coming soon").
-- Backend has only the auth router mounted; module routers are stubbed as comments in `src/index.ts` (`/api/mail`, `/api/tasks`, `/api/calendar`, `/api/notes`, `/api/finance`).
-- Database schema for all modules exists (done ahead of time in Phase 0), but no controllers, services, or sync logic.
-- No provider integrations yet (Gmail/Graph/IMAP, expo-calendar sync, GoCardless/Tink, rich-text editor).
+**Done — backend:**
+- Schema migration `0001_low_kate_bishop.sql` generated and applied: mail account credentials (IMAP/SMTP config on `accounts`), `mail_threads` (`folder`, `snoozed_until`), `emails` (`imap_uid`, `message_id`, `folder`, `scheduled_at`), sync-state columns.
+- `services/crypto.ts` — AES-256-GCM encryption for stored IMAP/SMTP passwords (`MAIL_CRED_SECRET`).
+- `services/imap.ts` — IMAP sync (imapflow + mailparser): incremental UID-based fetch per folder, thread grouping, flag/read-state sync.
+- `services/smtp.ts` — Nodemailer send with per-account SMTP config, scheduled-send support.
+- `controllers/mail.controller.ts` + `routes/mail.routes.ts` mounted at `/api/mail`: accounts CRUD + sync, threads (list/detail/unread-count/snooze/unsnooze), send, search, attachment download, `process-scheduled`.
+- Cron wiring: `backend/vercel.json` cron hits `/api/mail/process-scheduled` (cron-or-user auth) for scheduled sends and snooze wake-ups.
+
+**Done — mobile:**
+- `lib/mail-api.ts` API layer + `lib/schemas/mail.schemas.ts` (mirrored from `backend/src/shared/`) + `hooks/use-mail.ts` TanStack Query hooks.
+- Screens: inbox (`(tabs)/mail.tsx`, FlashList v2, replaces placeholder), thread detail (`mail/thread/[id].tsx`), compose (`mail/compose.tsx`), search (`mail/search.tsx`), account setup (`mail/account-setup.tsx` for IMAP/SMTP credentials).
+
+**Verification (2026-07-16, this branch):**
+- ✅ `npm run typecheck` passes in both `backend/` and `mobile/`.
+- ✅ `npx expo-doctor@latest` passes in `mobile/`.
+- ✅ Migrations 0000 + 0001 applied to the connected Neon database (`drizzle-kit migrate`); all 15 tables incl. mail columns confirmed via information_schema.
+- ✅ Live smoke test against Neon: server boots, `/health` 200; mail routes reject unauthenticated requests (401); after register → JWT, `/api/mail/accounts`, `/threads`, `/threads/unread-count`, `/search` all return 200 with valid payloads. Test user removed afterward.
+
+**Deferred (not in Phase 2 scope as shipped):**
+- Provider OAuth integrations (Gmail API / Microsoft Graph) — generic IMAP/SMTP only for now.
+- Push notification triggers on new mail.
+
+## Phases 3–6 — Modules ❌
+
+- Module tab screens (To-Do, Calendar, Notes, Finance) render `ModulePlaceholder` ("coming soon").
+- Backend has auth + mail routers mounted; remaining module routers are stubbed as comments in `src/index.ts` (`/api/tasks`, `/api/calendar`, `/api/notes`, `/api/finance`).
+- Database schema for all modules exists (done ahead of time in Phase 0), but no controllers, services, or sync logic for these modules.
+- No provider integrations yet (expo-calendar sync, GoCardless/Tink, rich-text editor).
 
 ## Phase 7 — Polish & Launch ❌
 
@@ -76,15 +100,16 @@
 
 ## Recommended Next Steps
 
-1. Deploy the backend to Vercel and verify `/api/health` (or the auth routes) respond in production; set `DATABASE_URL` + JWT secrets as Vercel env vars.
-2. Run the initial Drizzle migration against the production Neon database if not already applied.
-3. Begin Phase 2 (Mail module) per plan — modules ship sequentially: mail routes/controller on the backend (mount at the `/api/mail` stub), provider integration (Gmail/Graph/IMAP), then the mobile inbox UI (FlashList v2) replacing the Mail placeholder.
+1. Deploy the backend to Vercel and verify `/health` + auth/mail routes respond in production; set `DATABASE_URL`, JWT secrets, `MAIL_CRED_SECRET`, and `CRON_SECRET` as Vercel env vars (migrations are already applied to the connected Neon DB).
+2. Verify the `/api/mail/process-scheduled` cron fires on the live deployment.
+3. Begin Phase 3 (To-Do module) per plan — modules ship sequentially: tasks routes/controller on the backend (mount at the `/api/tasks` stub), then the mobile task-list UI (FlashList v2) replacing the To-Do placeholder.
 
 ---
 
 ## Git History Reference
 
 ```
+4c01b58 Merge PR #9 — mail-client-development (Phase 2: Mail module, IMAP/SMTP)
 c95ce84 Update storage.ts (MMKV .remove fix, direct on main)
 af348db Merge PR #5 — CI workflow, EAS config, Vercel entrypoint, mail.tsx fix
 9d625a6 feat: add CI workflow and backend serverless entrypoint
