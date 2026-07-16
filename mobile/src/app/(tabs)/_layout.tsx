@@ -8,10 +8,13 @@ import {
   Wallet,
 } from "lucide-react-native"
 
+import { useUnreadCount } from "@/hooks/use-mail"
 import { typography, useAppTheme } from "@/theme"
 
 export default function TabsLayout() {
   const { colors } = useAppTheme()
+  const unreadQuery = useUnreadCount()
+  const unread = unreadQuery.data ?? 0
 
   return (
     <Tabs
@@ -36,6 +39,12 @@ export default function TabsLayout() {
         options={{
           title: "Mail",
           tabBarIcon: ({ color, size }) => <Mail color={color} size={size} strokeWidth={1.75} />,
+          tabBarBadge: unread > 0 ? (unread > 99 ? "99+" : unread) : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.accent,
+            color: "#FFFFFF",
+            fontSize: typography.caption.fontSize,
+          },
         }}
       />
       <Tabs.Screen

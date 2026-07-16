@@ -48,6 +48,46 @@ function RootNavigator() {
               headerTintColor: colors.text,
             }}
           />
+          <Stack.Screen
+            name="mail/account-setup"
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              title: "Add Mail Account",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="mail/compose"
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              title: "New Message",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="mail/thread/[id]"
+            options={{
+              headerShown: true,
+              title: "",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="mail/search"
+            options={{
+              headerShown: true,
+              title: "Search",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={status !== "authenticated"}>
           <Stack.Screen name="(auth)" />

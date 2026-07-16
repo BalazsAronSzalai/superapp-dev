@@ -101,8 +101,9 @@ export async function searchMail(q: string) {
  */
 export async function attachmentDownloadRequest(emailId: string, index: number) {
   const token = await getAccessToken()
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
   return {
     url: `${API_URL}/api/mail/emails/${emailId}/attachments/${index}`,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers,
   }
 }
