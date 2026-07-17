@@ -11,12 +11,14 @@ import { FlashList } from "@shopify/flash-list"
 import { SearchX, Search as SearchIcon, X } from "lucide-react-native"
 
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { ThreadRow } from "@/components/mail/thread-row"
 import { useSearchMail } from "@/hooks/use-mail"
 import type { MailThread } from "@/lib/schemas/mail.schemas"
 import { radius, spacing, typography, useAppTheme } from "@/theme"
 
 const DEBOUNCE_MS = 300
+const Separator = getListSeparator(26)
 
 export default function SearchScreen() {
   const { colors } = useAppTheme()
@@ -92,12 +94,8 @@ export default function SearchScreen() {
           data={results}
           keyExtractor={(item: MailThread) => item.id}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }: { item: MailThread }) => (
-            <ThreadRow thread={item} onPress={() => router.push(`/mail/thread/${item.id}`)} />
-          )}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          renderItem={renderItem}
+          ItemSeparatorComponent={Separator}
         />
       )}
     </View>
@@ -127,9 +125,5 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.body.fontSize,
     paddingVertical: spacing.sm,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 26,
   },
 })

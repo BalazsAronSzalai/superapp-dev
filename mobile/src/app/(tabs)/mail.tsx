@@ -15,6 +15,7 @@ import { Archive, BellOff, Clock, Inbox, Search, SquarePen, Trash2 } from "lucid
 
 import { ScreenHeader } from "@/components/screen-header"
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { Button } from "@/components/ui/button"
 import { SwipeableRow, type SwipeAction } from "@/components/ui/swipeable-row"
 import { ThreadRow } from "@/components/mail/thread-row"
@@ -39,6 +40,8 @@ const FOLDERS: { key: MailFolder; label: string }[] = [
   { key: "snoozed", label: "Snoozed" },
   { key: "outbox", label: "Outbox" },
 ]
+
+const Separator = getListSeparator(26)
 
 export default function MailScreen() {
   const { colors } = useAppTheme()
@@ -245,9 +248,7 @@ export default function MailScreen() {
             }
           }}
           onEndReachedThreshold={0.4}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           ListFooterComponent={
             threadsQuery.isFetchingNextPage ? (
               <ActivityIndicator color={colors.accent} style={styles.footerSpinner} />
@@ -310,10 +311,6 @@ const styles = StyleSheet.create({
   folderChipText: {
     fontSize: typography.subheadline.fontSize,
     fontWeight: "600",
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 26,
   },
   footerSpinner: {
     paddingVertical: spacing.md,
