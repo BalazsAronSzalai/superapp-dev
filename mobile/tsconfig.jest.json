@@ -1,0 +1,13 @@
+{
+  "//": "Standalone tsconfig used only by ts-jest (see jest.config.mjs). Deliberately does NOT extend expo/tsconfig.base — Jest runs in Node/CommonJS, not Metro.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}
