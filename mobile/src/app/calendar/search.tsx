@@ -1,5 +1,5 @@
 // Calendar search — full-text search across event titles, notes, and locations.
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -13,12 +13,14 @@ import { FlashList } from "@shopify/flash-list"
 import { SearchX, Search as SearchIcon, X } from "lucide-react-native"
 
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { EventRow, formatDayLabel } from "@/components/calendar/event-row"
 import { useCalendars, useSearchEvents } from "@/hooks/use-calendar"
 import type { CalendarEvent } from "@/lib/schemas/calendar.schemas"
 import { radius, spacing, typography, useAppTheme } from "@/theme"
 
 const DEBOUNCE_MS = 300
+const Separator = getListSeparator(32)
 
 export default function CalendarSearchScreen() {
   const { colors } = useAppTheme()
@@ -43,17 +45,20 @@ export default function CalendarSearchScreen() {
     return map
   }, [calendarsQuery.data])
 
-  const renderItem = ({ item }: { item: CalendarEvent }) => (
-    <View style={styles.resultRow}>
-      <Text style={[styles.resultDate, { color: colors.textTertiary }]}>
-        {formatDayLabel(new Date(item.startTime))}
-      </Text>
-      <EventRow
-        event={item}
-        color={calendarColor.get(item.calendarId)}
-        onPress={(ev) => router.push(`/calendar/event/${ev.id}`)}
-      />
-    </View>
+  const renderItem = useCallback(
+    ({ item }: { item: CalendarEvent }) => (
+      <View style={styles.resultRow}>
+        <Text style={[styles.resultDate, { color: colors.textTertiary }]}>
+          {formatDayLabel(new Date(item.startTime))}
+        </Text>
+        <EventRow
+          event={item}
+          color={calendarColor.get(item.calendarId)}
+          onPress={(ev) => router.push(`/calendar/event/${ev.id}`)}
+        />
+      </View>
+    ),
+    [calendarColor, router, colors.textTertiary],
   )
 
   return (
@@ -107,9 +112,7 @@ export default function CalendarSearchScreen() {
           data={results}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -150,10 +153,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
     paddingHorizontal: spacing.md,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 32,
   },
   listContent: {
     paddingBottom: spacing.xl,

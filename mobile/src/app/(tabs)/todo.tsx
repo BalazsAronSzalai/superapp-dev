@@ -28,6 +28,7 @@ import {
 
 import { ScreenHeader } from "@/components/screen-header"
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { SwipeableRow, type SwipeAction } from "@/components/ui/swipeable-row"
 import { QuickEntrySheet } from "@/components/todo/quick-entry-sheet"
 import { TaskRow, formatTaskDate } from "@/components/todo/task-row"
@@ -51,6 +52,8 @@ const VIEWS: { key: TaskView; label: string; icon: ComponentType<LucideProps> }[
   { key: "someday", label: "Someday", icon: Moon },
   { key: "logbook", label: "Logbook", icon: CheckCircle2 },
 ]
+
+const Separator = getListSeparator(52)
 
 const EMPTY_COPY: Record<TaskView, { title: string; description: string }> = {
   today: {
@@ -286,9 +289,7 @@ export default function TodoScreen() {
               tintColor={colors.accent}
             />
           }
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -371,10 +372,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.xs,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 52,
   },
   listContent: {
     paddingBottom: 96,

@@ -16,6 +16,7 @@ import { ReceiptText, Search as SearchIcon, Trash2, X } from "lucide-react-nativ
 import { categoryMeta, withAlpha } from "@/components/finance/category-meta"
 import { TransactionRow } from "@/components/finance/transaction-row"
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
 import { useDeleteTransaction, useTransactions } from "@/hooks/use-finance"
 import {
@@ -31,6 +32,8 @@ const TYPE_OPTIONS: { value: TransactionType | null; label: string }[] = [
   { value: "debit", label: "Expenses" },
   { value: "credit", label: "Income" },
 ]
+
+const Separator = getListSeparator(spacing.md + 40 + spacing.sm + 4)
 
 export default function TransactionsScreen() {
   const { colors } = useAppTheme()
