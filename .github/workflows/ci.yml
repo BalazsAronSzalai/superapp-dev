@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       - name: Typecheck
         run: npm run typecheck
+      - name: Unit tests (Jest)
+        run: npm test
       - name: Validate dependency tree against SDK 57 (expo-doctor)
         run: npx expo-doctor@latest
 
@@ -43,3 +45,5 @@ jobs:
         run: npm ci
       - name: Typecheck
         run: npm run typecheck
+      - name: Unit tests (Jest)
+        run: npm test
