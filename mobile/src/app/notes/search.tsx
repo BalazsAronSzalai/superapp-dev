@@ -1,6 +1,6 @@
 // Notes search — full-text search across titles and content, plus tag
 // browsing when the query is empty (plan.md Phase 5).
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -15,12 +15,16 @@ import { FlashList } from "@shopify/flash-list"
 import { SearchX, Search as SearchIcon, X } from "lucide-react-native"
 
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { NoteRow } from "@/components/notes/note-row"
 import { useNotes, useNoteTags, useSearchNotes } from "@/hooks/use-notes"
 import type { NoteSummary } from "@/lib/schemas/note.schemas"
 import { radius, spacing, typography, useAppTheme } from "@/theme"
 
 const DEBOUNCE_MS = 300
+
+/** Stable separator component type — see list-separator.tsx (FlashList perf). */
+const Separator = getListSeparator(spacing.md)
 
 export default function NotesSearchScreen() {
   const { colors } = useAppTheme()
@@ -45,8 +49,11 @@ export default function NotesSearchScreen() {
   const results = active ? (searchQuery.data ?? []) : tag ? (taggedQuery.data ?? []) : []
   const loading = active ? searchQuery.isLoading : tag ? taggedQuery.isLoading : false
 
-  const renderItem = ({ item }: { item: NoteSummary }) => (
-    <NoteRow note={item} onPress={(n) => router.push(`/notes/note/${n.id}`)} />
+  const renderItem = useCallback(
+    ({ item }: { item: NoteSummary }) => (
+      <NoteRow note={item} onPress={(n) => router.push(`/notes/note/${n.id}`)} />
+    ),
+    [router],
   )
 
   return (
@@ -140,9 +147,7 @@ export default function NotesSearchScreen() {
           data={results}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -190,10 +195,6 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: typography.subheadline.fontSize,
     fontWeight: "600",
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.md,
   },
   listContent: {
     paddingBottom: spacing.xl,

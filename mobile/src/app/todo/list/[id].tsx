@@ -12,6 +12,7 @@ import { FlashList } from "@shopify/flash-list"
 import { ListTodo, Plus, Sun, Trash2 } from "lucide-react-native"
 
 import { EmptyState } from "@/components/ui/empty-state"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { SwipeableRow, type SwipeAction } from "@/components/ui/swipeable-row"
 import { QuickEntrySheet } from "@/components/todo/quick-entry-sheet"
 import { TaskRow } from "@/components/todo/task-row"
@@ -27,6 +28,9 @@ import {
 } from "@/hooks/use-tasks"
 import type { Task } from "@/lib/schemas/task.schemas"
 import { radius, spacing, useAppTheme } from "@/theme"
+
+/** Stable separator component type — see list-separator.tsx (FlashList perf). */
+const Separator = getListSeparator(52)
 
 function isoAtNineToday(): string {
   const d = new Date()
@@ -123,9 +127,7 @@ export default function ListDetailScreen() {
               tintColor={colors.accent}
             />
           }
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -161,10 +163,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 52,
   },
   listContent: {
     paddingBottom: 96,
