@@ -1,9 +1,11 @@
 import { useEffect } from "react"
-import { Stack } from "expo-router"
+import { Pressable } from "react-native"
+import { Stack, router } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { QueryClientProvider } from "@tanstack/react-query"
+import { X } from "lucide-react-native"
 
 import { BiometricGate } from "@/components/biometric-gate"
 import { useAuthStore } from "@/lib/auth/store"
@@ -46,6 +48,20 @@ function RootNavigator() {
               title: "Settings",
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,
+              headerLeft: () => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close settings"
+                  onPress={() => router.back()}
+                  style={({ pressed }) => ({
+                    padding: 8,
+                    marginLeft: 8,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <X color={colors.text} size={22} strokeWidth={2} />
+                </Pressable>
+              ),
             }}
           />
           <Stack.Screen
@@ -66,6 +82,20 @@ function RootNavigator() {
               title: "Add Mail Account",
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,
+              headerLeft: () => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                  onPress={() => router.back()}
+                  style={({ pressed }) => ({
+                    padding: 8,
+                    marginLeft: 8,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <X color={colors.text} size={22} strokeWidth={2} />
+                </Pressable>
+              ),
             }}
           />
           <Stack.Screen
@@ -76,6 +106,20 @@ function RootNavigator() {
               title: "New Message",
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,
+              headerLeft: () => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close compose"
+                  onPress={() => router.back()}
+                  style={({ pressed }) => ({
+                    padding: 8,
+                    marginLeft: 8,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <X color={colors.text} size={22} strokeWidth={2} />
+                </Pressable>
+              ),
             }}
           />
           <Stack.Screen
@@ -93,6 +137,66 @@ function RootNavigator() {
             options={{
               headerShown: true,
               title: "Search",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="todo/lists"
+            options={{
+              headerShown: true,
+              title: "Lists",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="todo/list/[id]"
+            options={{
+              headerShown: true,
+              title: "",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="todo/task/[id]"
+            options={{
+              headerShown: true,
+              title: "To-Do",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="calendar/calendars"
+            options={{
+              headerShown: true,
+              title: "Calendars",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="calendar/event/[id]"
+            options={{
+              headerShown: true,
+              title: "Event",
+              headerBackButtonDisplayMode: "minimal",
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="calendar/search"
+            options={{
+              headerShown: true,
+              title: "Search Events",
               headerBackButtonDisplayMode: "minimal",
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,

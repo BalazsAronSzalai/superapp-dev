@@ -59,6 +59,7 @@
 - ✅ Broken `mail` route fixed: `mobile/src/app/(tabs)/mail.tsx` now exists as a `ModulePlaceholder` ("Phase 2"), matching the other module tabs. All 5 registered tabs now resolve.
 - ✅ CI/CD portion of Phase 1 done (CI workflow, `eas.json`, Vercel serverless entrypoint — see Phase 0 section).
 - ✅ Bug fixes: MMKV Zustand adapter now uses `storage.remove()` instead of the nonexistent `.delete()` (react-native-mmkv 4 API, commits 9d625a6 + c95ce84); `ThemeColors` type in `theme/tokens.ts` widened to a mapped `string` type so dark palette values typecheck.
+- ✅ Navigation traps resolved: Registered missing To-Do and Calendar sub-screens (`todo/lists`, `todo/list/[id]`, `todo/task/[id]`, `calendar/calendars`, `calendar/event/[id]`, `calendar/search`) in the root navigator (`_layout.tsx`) to show headers and back-navigation buttons across all features.
 
 **Remaining gaps:**
 - Live Vercel deployment of the backend not yet confirmed (entrypoint + `vercel.json` are in place).
