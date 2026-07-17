@@ -2,7 +2,7 @@ import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token
 import { authTokensSchema } from "./schemas/auth.schemas"
 
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001"
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3999"
 
 export class ApiError extends Error {
   status: number
