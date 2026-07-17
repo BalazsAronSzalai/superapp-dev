@@ -1,6 +1,6 @@
 // Universal search across all modules (plan.md Phase 7 superapp glue):
 // one query hits mail, tasks, events, notes, and transactions at once.
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   Pressable,
@@ -56,24 +56,30 @@ export default function UniversalSearchScreen() {
     return out
   }, [data])
 
-  const openResult = (item: SearchResultItem) => {
-    const route = entityRoute(item.entityType, item.id)
-    if (route) router.push(route as never)
-  }
+  const openResult = useCallback(
+    (item: SearchResultItem) => {
+      const route = entityRoute(item.entityType, item.id)
+      if (route) router.push(route as never)
+    },
+    [router],
+  )
 
-  const renderItem = ({ item }: { item: ListRow }) => {
-    if (item.kind === "header") {
-      return (
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>
-            {SEARCH_TYPE_META[item.type].label}
-          </Text>
-          <Text style={[styles.sectionCount, { color: colors.textTertiary }]}>{item.count}</Text>
-        </View>
-      )
-    }
-    return <SearchResultRow item={item.item} onPress={openResult} />
-  }
+  const renderItem = useCallback(
+    ({ item }: { item: ListRow }) => {
+      if (item.kind === "header") {
+        return (
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>
+              {SEARCH_TYPE_META[item.type].label}
+            </Text>
+            <Text style={[styles.sectionCount, { color: colors.textTertiary }]}>{item.count}</Text>
+          </View>
+        )
+      }
+      return <SearchResultRow item={item.item} onPress={openResult} />
+    },
+    [colors.textTertiary, openResult],
+  )
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.background }]}>

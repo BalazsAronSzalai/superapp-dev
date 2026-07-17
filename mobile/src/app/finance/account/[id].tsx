@@ -18,6 +18,7 @@ import { TransactionRow } from "@/components/finance/transaction-row"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { SheetModal } from "@/components/ui/modal"
+import { getListSeparator } from "@/components/ui/list-separator"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
 import { TextField } from "@/components/ui/text-field"
 import {
@@ -31,6 +32,9 @@ import {
 import { formatCurrency } from "@/lib/money"
 import type { Transaction } from "@/lib/schemas/finance.schemas"
 import { radius, spacing, typography, useAppTheme } from "@/theme"
+
+/** Stable separator component type — see list-separator.tsx (FlashList perf). */
+const Separator = getListSeparator(spacing.md + 40 + spacing.sm + 4)
 
 export default function FinanceAccountScreen() {
   const { colors } = useAppTheme()
@@ -189,9 +193,7 @@ export default function FinanceAccountScreen() {
           data={transactions}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -335,10 +337,6 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: typography.caption.fontSize,
     fontWeight: "600",
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.md + 40 + spacing.sm + 4,
   },
   listContent: {
     paddingBottom: spacing.xl,

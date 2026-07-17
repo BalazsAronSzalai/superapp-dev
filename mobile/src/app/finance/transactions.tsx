@@ -188,9 +188,7 @@ export default function TransactionsScreen() {
           data={transactions}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
+          ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -257,10 +255,6 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: typography.footnote.fontSize,
     fontWeight: "600",
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.md + 40 + spacing.sm + 4,
   },
   listContent: {
     paddingBottom: spacing.xl,
