@@ -35,10 +35,13 @@
   "devDependencies": {
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
+    "@types/jest": "30.0.0",
     "@types/mailparser": "^3.4.6",
     "@types/node": "26.1.1",
     "@types/nodemailer": "8.0.1",
     "drizzle-kit": "0.31.8",
+    "jest": "30.4.2",
+    "ts-jest": "29.4.11",
     "tsx": "4.23.1",
     "typescript": "5.9.3"
   }
